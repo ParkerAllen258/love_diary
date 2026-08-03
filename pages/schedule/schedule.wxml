@@ -1,0 +1,245 @@
+<view class="page">
+
+  <!-- ==================== 顶部情侣状态卡 ==================== -->
+  <view class="status-card">
+    <view class="status-bg"></view>
+    <view class="status-content">
+      <!-- 我的状态 -->
+      <view class="status-user" bindtap="openStatusPicker">
+        <image class="status-avatar" src="{{myAvatar || defaultAvatar}}" mode="aspectFill" />
+        <view class="status-name">{{myName}}</view>
+        <view class="status-badge" wx:if="{{myStatus}}" style="background: {{myStatus.color}}20; color: {{myStatus.color}};">
+          {{myStatus.emoji}} {{myStatus.text}}
+        </view>
+        <view class="status-badge status-edit" wx:else>
+          ✏️ 设置状态
+        </view>
+      </view>
+
+      <!-- 中间连接 -->
+      <view class="status-link">
+        <view class="status-heart">💕</view>
+        <view class="status-line"></view>
+      </view>
+
+      <!-- 对方状态 -->
+      <view class="status-user">
+        <image class="status-avatar" src="{{partnerAvatar || defaultAvatar}}" mode="aspectFill" />
+        <view class="status-name">{{partnerName}}</view>
+        <view class="status-badge" wx:if="{{partnerStatus}}" style="background: {{partnerStatus.color}}20; color: {{partnerStatus.color}};">
+          {{partnerStatus.emoji}} {{partnerStatus.text}}
+        </view>
+        <view class="status-badge status-empty" wx:else>
+          💤 未设置
+        </view>
+      </view>
+    </view>
+    <view class="status-tip" wx:if="{{!hasCouple}}" bindtap="goAnniversary">
+      绑定情侣后即可查看对方状态 💕
+    </view>
+  </view>
+
+  <!-- ==================== 月历 ==================== -->
+  <view class="calendar-card">
+    <!-- 导航 -->
+    <view class="cal-nav">
+      <view class="cal-nav-btn" bindtap="prevMonth">◀</view>
+      <view class="cal-nav-title">{{monthTitle}}</view>
+      <view class="cal-nav-btn" bindtap="nextMonth">▶</view>
+    </view>
+
+    <!-- 星期头 -->
+    <view class="cal-weekdays">
+      <view class="cal-weekday" wx:for="{{weekDays}}" wx:key="*this">{{item}}</view>
+    </view>
+
+    <!-- 日期格 -->
+    <view class="cal-grid">
+      <view
+        class="cal-cell {{item.month !== 'current' ? 'muted' : ''}} {{item.isToday ? 'today' : ''}} {{item.isSelected ? 'selected' : ''}} {{item.isWeekend && item.month === 'current' && !item.isSelected ? 'weekend' : ''}} {{item.holiday ? 'holiday-cell' : ''}}"
+        wx:for="{{monthCells}}"
+        wx:key="dateStr"
+        data-date="{{item.dateStr}}"
+        data-month="{{item.month}}"
+        bindtap="onDayTap"
+       style="height: 81rpx; display: flex; box-sizing: border-box; width: 79rpx">
+        <text class="cal-day" style="height: 34rpx; display: block; box-sizing: border-box">{{item.day}}</text>
+        <text class="cal-holiday" wx:if="{{item.holiday && item.month === 'current'}}">{{item.holiday}}</text>
+        <view class="cal-dot" wx:if="{{item.hasEvent && item.month === 'current'}}"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 今日安排 / 选中日安排 ==================== -->
+  <view class="section-card">
+    <view class="section-header">
+      <view class="section-title">
+        <text wx:if="{{selectedDate === todayStr}}">📋 今日安排</text>
+        <text wx:else>📋 {{selectedDateLabel}}</text>
+      </view>
+      <view class="section-add" bindtap="openAddEvent">+ 添加</view>
+    </view>
+
+    <view class="event-list" wx:if="{{selectedDateEvents.length > 0 || todayEvents.length > 0}}">
+      <block wx:for="{{selectedDate === todayStr ? todayEvents : selectedDateEvents}}" wx:key="_id">
+        <view class="event-item" style="border-left: 6rpx solid {{item.color}};" data-id="{{item._id}}" bindtap="editEvent">
+          <view class="event-left">
+            <text class="event-emoji">{{item.emoji || '📅'}}</text>
+          </view>
+          <view class="event-body">
+            <text class="event-title">{{item.title}}</text>
+            <text class="event-time" wx:if="{{item.time}}">⏰ {{item.time}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+    <view class="empty-hint" wx:else>
+      <text>{{selectedDate === todayStr ? '今天暂无安排~ 添加一个吧 💫' : '这天还没有安排哦'}}</text>
+    </view>
+  </view>
+
+  <!-- ==================== 倒计时卡片 ==================== -->
+  <view class="section-card" wx:if="{{countdowns.length > 0}}">
+    <view class="section-header">
+      <view class="section-title">⏳ 我们的纪念日</view>
+    </view>
+    <scroll-view class="countdown-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="countdown-item {{item.type === 'today' ? 'today' : ''}}" wx:for="{{countdowns}}" wx:key="key">
+        <view class="cd-emoji">{{item.emoji}}</view>
+        <view class="cd-info">
+          <text class="cd-title">{{item.title}}</text>
+          <text class="cd-sub">{{item.sub}}</text>
+        </view>
+        <view class="cd-days" wx:if="{{item.days > 0 && item.type !== 'past'}}">
+          <text class="cd-num">{{item.days}}</text>
+          <text class="cd-unit">天</text>
+        </view>
+        <view class="cd-badge" wx:if="{{item.type === 'today'}}">今天</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- ==================== 情侣计划清单 ==================== -->
+  <view class="section-card">
+    <view class="section-header">
+      <view class="section-title">✅ 情侣计划清单</view>
+      <view class="section-add" bindtap="openAddPlan">+ 添加</view>
+    </view>
+
+    <!-- 未完成 -->
+    <view class="plan-list" wx:if="{{plans.length > 0}}">
+      <view class="plan-item" wx:for="{{plans}}" wx:key="_id">
+        <view class="plan-check" data-id="{{item._id}}" data-completed="{{false}}" bindtap="togglePlan">
+          <text>○</text>
+        </view>
+        <text class="plan-text">{{item.title}}</text>
+        <text class="plan-del" data-id="{{item._id}}" catchtap="deletePlan">🗑</text>
+      </view>
+    </view>
+
+    <!-- 已完成 -->
+    <view class="plan-list done-list" wx:if="{{completedPlans.length > 0}}">
+      <view class="plan-item done" wx:for="{{completedPlans}}" wx:key="_id">
+        <view class="plan-check checked" data-id="{{item._id}}" data-completed="{{true}}" bindtap="togglePlan">
+          <text>✓</text>
+        </view>
+        <text class="plan-text">{{item.title}}</text>
+        <text class="plan-del" data-id="{{item._id}}" catchtap="deletePlan">🗑</text>
+      </view>
+    </view>
+
+    <view class="empty-hint" wx:if="{{plans.length === 0 && completedPlans.length === 0}}">
+      <text>还没有一起的计划~ 写下想和TA一起做的事吧 💝</text>
+    </view>
+  </view>
+
+  <!-- 底部留白 -->
+  <view class="bottom-space"></view>
+
+</view>
+
+<!-- ==================== 状态选择弹窗 ==================== -->
+<view class="mask" wx:if="{{showStatusPicker}}" bindtap="closeStatusPicker"></view>
+<view class="bottom-sheet" wx:if="{{showStatusPicker}}">
+  <view class="sheet-title">设置我的状态</view>
+  <view class="status-grid">
+    <view
+      class="status-option"
+      wx:for="{{statusOptions}}"
+      wx:key="key"
+      data-key="{{item.key}}"
+      bindtap="changeStatus"
+    >
+      <view class="so-emoji">{{item.emoji}}</view>
+      <view class="so-text" style="color: {{item.color}};">{{item.text}}</view>
+    </view>
+  </view>
+  <view class="sheet-cancel" bindtap="closeStatusPicker">取消</view>
+</view>
+
+<!-- ==================== 添加事件弹窗 ==================== -->
+<view class="mask" wx:if="{{showEventForm}}" bindtap="closeEventForm"></view>
+<view class="bottom-sheet event-sheet" wx:if="{{showEventForm}}">
+  <view class="sheet-title">{{editingEventId ? '编辑日程' : '添加日程'}}</view>
+
+  <view class="form-group">
+    <view class="form-label">日期</view>
+    <picker mode="date" value="{{eventForm.date}}" bindchange="onEventDateChange">
+      <view class="form-picker-row">{{eventForm.date || '选择日期'}}</view>
+    </picker>
+  </view>
+
+  <view class="form-group">
+    <view class="form-label">事件名称</view>
+    <input class="form-input" placeholder="例如：一起看电影" value="{{eventForm.title}}" data-field="title" bindinput="onEventFormInput" />
+  </view>
+
+  <view class="form-group">
+    <view class="form-label">时间</view>
+    <input class="form-input" placeholder="如 19:00（可选）" value="{{eventForm.time}}" data-field="time" bindinput="onEventFormInput" />
+  </view>
+
+  <view class="form-group">
+    <view class="form-label">Emoji 标签</view>
+    <scroll-view class="emoji-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+      <view
+        class="emoji-tag {{eventForm.emoji === item ? 'active' : ''}}"
+        wx:for="{{emojiTags}}"
+        wx:key="*this"
+        data-emoji="{{item}}"
+        bindtap="pickEmoji"
+      >{{item}}</view>
+    </scroll-view>
+  </view>
+
+  <view class="form-group">
+    <view class="form-label">颜色标记</view>
+    <view class="color-row">
+      <view
+        class="color-dot {{eventForm.color === item ? 'active' : ''}}"
+        wx:for="{{eventColors}}"
+        wx:key="*this"
+        style="background: {{item}};"
+        data-color="{{item}}"
+        bindtap="pickColor"
+      ></view>
+    </view>
+  </view>
+
+  <view class="sheet-btns">
+    <button wx:if="{{editingEventId}}" class="btn-danger" bindtap="deleteEvent">删除</button>
+    <button class="btn-cancel" bindtap="closeEventForm">取消</button>
+    <button class="btn-save" bindtap="saveEvent">保存</button>
+  </view>
+</view>
+
+<!-- ==================== 添加计划弹窗 ==================== -->
+<view class="mask" wx:if="{{showPlanForm}}" bindtap="closePlanForm"></view>
+<view class="bottom-sheet mini-sheet" wx:if="{{showPlanForm}}">
+  <view class="sheet-title">添加情侣计划</view>
+  <input class="form-input plan-input" placeholder="写下想和TA一起做的事..." value="{{planText}}" bindinput="onPlanInput" focus="{{true}}" />
+  <view class="sheet-btns">
+    <button class="btn-cancel" bindtap="closePlanForm">取消</button>
+    <button class="btn-save" bindtap="savePlan">添加</button>
+  </view>
+</view>

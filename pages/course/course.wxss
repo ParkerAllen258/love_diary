@@ -1,0 +1,992 @@
+/* ==================== 页面基础 ==================== */
+page {
+  background: linear-gradient(180deg, #fff0f5 0%, #ffe4ec 30%, #ffd6e0 100%);
+  min-height: 100vh;
+}
+
+.page {
+  padding: 0 24rpx;
+}
+
+/* ==================== 状态卡片 ==================== */
+.status-card {
+  margin: 20rpx 0 16rpx;
+  padding: 36rpx 32rpx;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(30rpx);
+  -webkit-backdrop-filter: blur(30rpx);
+  border-radius: 28rpx;
+  box-shadow: 0 8rpx 32rpx rgba(255, 107, 138, 0.1), 0 2rpx 8rpx rgba(255, 150, 170, 0.08);
+  position: relative;
+  overflow: hidden;
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
+}
+
+.status-glow {
+  position: absolute;
+  top: -40rpx;
+  right: -40rpx;
+  width: 160rpx;
+  height: 160rpx;
+  background: radial-gradient(circle, rgba(255, 107, 138, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.status-main {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.status-emoji {
+  font-size: 64rpx;
+  margin-right: 24rpx;
+  filter: drop-shadow(0 4rpx 8rpx rgba(255, 107, 138, 0.2));
+}
+
+.status-content {
+  flex: 1;
+}
+
+.status-label {
+  font-size: 22rpx;
+  color: #bbb;
+  margin-bottom: 6rpx;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+}
+
+.status-text {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #444;
+  line-height: 1.3;
+}
+
+.status-countdown {
+  margin-top: 10rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #ff6b8a;
+  display: inline-block;
+  padding: 6rpx 20rpx;
+  background: rgba(255, 107, 138, 0.08);
+  border-radius: 999rpx;
+}
+
+.status-bar {
+  height: 6rpx;
+  border-radius: 3rpx;
+  margin-top: 24rpx;
+  background: linear-gradient(90deg, #ff9eb5, #ff6b8a);
+  animation: statusPulse 3s ease-in-out infinite;
+}
+
+.status-bar.no_class { background: linear-gradient(90deg, #a0e7e5, #7bc8c4); }
+.status-bar.finished { background: linear-gradient(90deg, #ffd6a5, #ffb347); }
+.status-bar.in_class { background: linear-gradient(90deg, #ff9eb5, #ff6b8a); }
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ==================== 情侣互动提示 ==================== */
+.couple-tips {
+  margin-bottom: 16rpx;
+}
+
+.tip-card {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  margin-bottom: 12rpx;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(255, 182, 193, 0.3);
+}
+
+.tip-icon {
+  font-size: 36rpx;
+  margin-right: 14rpx;
+  flex-shrink: 0;
+}
+
+.tip-text {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* ==================== 通用卡片 ==================== */
+.section-card {
+  margin-bottom: 20rpx;
+  padding: 28rpx;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24rpx);
+  -webkit-backdrop-filter: blur(24rpx);
+  border-radius: 28rpx;
+  box-shadow: 0 4rpx 24rpx rgba(255, 107, 138, 0.06);
+  border: 1rpx solid rgba(255, 255, 255, 0.5);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #444;
+}
+
+.title-icon {
+  margin-right: 10rpx;
+  font-size: 32rpx;
+}
+
+.section-badge {
+  font-size: 22rpx;
+  color: #ff6b8a;
+  background: rgba(255, 107, 138, 0.08);
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  font-weight: 600;
+}
+
+.section-arrow {
+  font-size: 36rpx;
+  color: #bbb;
+  transition: transform 0.25s;
+  font-weight: 300;
+}
+
+.section-arrow.rotated {
+  transform: rotate(90deg);
+}
+
+/* ==================== 空状态 ==================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0 20rpx;
+}
+
+.empty-emoji {
+  font-size: 72rpx;
+  margin-bottom: 12rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+  font-weight: 600;
+}
+
+.empty-sub {
+  font-size: 24rpx;
+  color: #ccc;
+  margin-top: 6rpx;
+}
+
+.empty-state.small {
+  padding: 16rpx 0;
+}
+
+.empty-state.small .empty-text {
+  font-size: 24rpx;
+  color: #bbb;
+}
+
+/* ==================== 今日课程列表 ==================== */
+.today-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.course-item {
+  display: flex;
+  align-items: stretch;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s;
+}
+
+.course-item:active {
+  transform: scale(0.98);
+}
+
+.course-item.is-current {
+  box-shadow: 0 4rpx 20rpx rgba(255, 107, 138, 0.15);
+  border: 1rpx solid rgba(255, 107, 138, 0.3);
+}
+
+.course-color-bar {
+  width: 8rpx;
+  flex-shrink: 0;
+}
+
+.course-main {
+  flex: 1;
+  padding: 20rpx 16rpx;
+  min-width: 0;
+}
+
+.course-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.course-name {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #333;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.course-tag {
+  font-size: 20rpx;
+  color: #fff;
+  background: #ff6b8a;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.meta-item, .meta-time {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.course-arrow {
+  width: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #ddd;
+  flex-shrink: 0;
+}
+
+/* ==================== 下一节课 ==================== */
+.next-course-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx;
+  background: rgba(255, 240, 245, 0.6);
+  border-radius: 20rpx;
+  border-left: 6rpx solid #ff6b8a;
+}
+
+.next-course-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.next-name {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #444;
+  margin-bottom: 6rpx;
+}
+
+.next-meta {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.next-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.countdown-num {
+  font-size: 40rpx;
+  font-weight: 900;
+  color: #ff6b8a;
+  line-height: 1;
+}
+
+.countdown-label {
+  font-size: 20rpx;
+  color: #bbb;
+  margin-top: 4rpx;
+}
+
+/* ==================== 共同空闲时间 ==================== */
+.free-time-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.free-slot {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background: linear-gradient(135deg, rgba(255, 107, 138, 0.04), rgba(255, 182, 193, 0.06));
+  border-radius: 16rpx;
+  border: 1rpx dashed rgba(255, 182, 193, 0.3);
+}
+
+.free-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #ff6b8a;
+  margin-right: 14rpx;
+  flex-shrink: 0;
+}
+
+.free-text {
+  font-size: 26rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+/* ==================== 周选择条 ==================== */
+.week-selector {
+  display: flex;
+  gap: 8rpx;
+  margin-bottom: 20rpx;
+}
+
+.week-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14rpx 4rpx;
+  border-radius: 16rpx;
+  background: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s;
+}
+
+.week-day.active {
+  background: linear-gradient(135deg, #ff9eb5, #ff6b8a);
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 138, 0.3);
+}
+
+.week-day-label {
+  font-size: 22rpx;
+  color: #888;
+  font-weight: 500;
+}
+
+.week-day.active .week-day-label {
+  color: #fff;
+  font-weight: 700;
+}
+
+.week-day-count {
+  font-size: 18rpx;
+  color: #ff6b8a;
+  margin-top: 4rpx;
+  font-weight: 600;
+}
+
+.week-day.active .week-day-count {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.week-day.has-course {
+  background: rgba(255, 107, 138, 0.06);
+}
+
+/* ==================== 选中日课程列表 ==================== */
+.active-day-section {
+  margin-bottom: 20rpx;
+}
+
+.active-day-header {
+  margin-bottom: 12rpx;
+}
+
+.active-day-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #ff6b8a;
+}
+
+.active-day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+/* ==================== 周课表 ==================== */
+.week-table-wrap {
+  margin: 0 -28rpx -28rpx;
+  border-radius: 0 0 28rpx 28rpx;
+  overflow: hidden;
+}
+
+.week-table-scroll {
+  width: 100%;
+}
+
+.week-table {
+  min-width: 900rpx;
+}
+
+.wt-row {
+  display: flex;
+}
+
+.wt-header {
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05);
+}
+
+.wt-cell {
+  border-right: 1rpx solid rgba(0, 0, 0, 0.03);
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.wt-corner {
+  width: 100rpx;
+  height: 68rpx;
+  font-size: 22rpx;
+  color: #999;
+  font-weight: 600;
+  background: rgba(255, 245, 247, 0.6);
+}
+
+.wt-day-head {
+  flex: 1;
+  min-width: 100rpx;
+  height: 68rpx;
+}
+
+.wt-day-label {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #777;
+}
+
+.wt-day-label.active {
+  color: #ff6b8a;
+}
+
+.wt-section {
+  width: 100rpx;
+  height: 90rpx;
+  font-size: 20rpx;
+  color: #999;
+  background: rgba(255, 245, 247, 0.4);
+}
+
+.wt-sec-num {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #666;
+}
+
+.wt-sec-time {
+  font-size: 17rpx;
+  color: #bbb;
+  margin-top: 2rpx;
+}
+
+.wt-course-cell {
+  flex: 1;
+  min-width: 100rpx;
+  height: 90rpx;
+  padding: 3rpx;
+  box-sizing: border-box;
+}
+
+.wt-course-block {
+  width: 100%;
+  height: 100%;
+  border-radius: 8rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rpx 4rpx;
+  box-sizing: border-box;
+  transition: all 0.15s;
+}
+
+.wt-course-block:active {
+  transform: scale(0.94);
+  opacity: 0.85;
+}
+
+.wt-course-name {
+  font-size: 19rpx;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.2;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.wt-course-place {
+  font-size: 15rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 1rpx;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* ==================== 底部操作栏 ==================== */
+.bottom-bar {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 4rpx;
+  margin-bottom: 20rpx;
+}
+
+.bottom-btn {
+  flex: 1;
+  padding: 24rpx;
+  border-radius: 20rpx;
+  text-align: center;
+  font-size: 26rpx;
+  font-weight: 600;
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
+  transition: transform 0.15s;
+}
+
+.bottom-btn:active {
+  transform: scale(0.96);
+}
+
+.ocr-btn {
+  background: rgba(255, 255, 255, 0.7);
+  color: #ff6b8a;
+  border: 1rpx solid rgba(255, 182, 193, 0.3);
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #ff9eb5, #ff6b8a);
+  color: #fff;
+  box-shadow: 0 6rpx 20rpx rgba(255, 107, 138, 0.3);
+}
+
+/* ==================== 底部留白 ==================== */
+.bottom-space {
+  height: 40rpx;
+}
+
+/* ==================== 弹窗表单 ==================== */
+.mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 200;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.bottom-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -100%;
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 40rpx 40rpx 0 0;
+  z-index: 201;
+  padding: 32rpx 28rpx;
+  padding-bottom: calc(32rpx + env(safety-area-inset-bottom));
+  transition: bottom 0.3s ease;
+  overflow-y: auto;
+}
+
+.bottom-sheet.show {
+  bottom: 0;
+}
+
+.sheet-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+  margin-bottom: 28rpx;
+}
+
+.form-group {
+  margin-bottom: 20rpx;
+}
+
+.form-label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.form-label.sub {
+  font-size: 22rpx;
+  margin-bottom: 6rpx;
+  color: #999;
+}
+
+.form-input {
+  height: 80rpx;
+  background: #f8f8f8;
+  border-radius: 16rpx;
+  padding: 0 22rpx;
+  font-size: 28rpx;
+  border: 1rpx solid transparent;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: #ffb6c1;
+  background: #fff;
+}
+
+.form-picker-row {
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 16rpx;
+  background: #f8f8f8;
+  border-radius: 14rpx;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.infl-row {
+  display: flex;
+  gap: 12rpx;
+}
+
+.infl-item {
+  flex: 1;
+}
+
+.color-row {
+  display: flex;
+  gap: 16rpx;
+  padding: 4rpx 0;
+  flex-wrap: wrap;
+}
+
+.color-dot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  transition: all 0.15s;
+}
+
+.color-dot.active {
+  box-shadow: 0 0 0 4rpx #fff, 0 0 0 7rpx currentColor;
+  transform: scale(1.15);
+}
+
+.sheet-btns {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 28rpx;
+}
+
+.btn-cancel,
+.btn-save,
+.btn-danger {
+  flex: 1;
+  height: 84rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.btn-cancel {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #ff9eb5, #ff6b8a);
+  color: #fff;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 138, 0.3);
+}
+
+.btn-danger {
+  background: #fff0f0;
+  color: #e53935;
+}
+
+/* ==================== OCR识别结果审核面板 ==================== */
+.ocr-review-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -100%;
+  max-height: 85vh;
+  background: #fff;
+  border-radius: 40rpx 40rpx 0 0;
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  transition: bottom 0.3s ease;
+}
+
+.ocr-review-panel.show {
+  bottom: 0;
+}
+
+.ocr-review-header {
+  padding: 32rpx 28rpx 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.ocr-review-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333;
+  display: block;
+  text-align: center;
+}
+
+.ocr-review-sub {
+  font-size: 24rpx;
+  color: #999;
+  display: block;
+  text-align: center;
+  margin-top: 8rpx;
+}
+
+.ocr-review-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16rpx 28rpx;
+}
+
+.ocr-course-card {
+  display: flex;
+  align-items: center;
+  background: #fafafa;
+  border-radius: 20rpx;
+  margin-bottom: 12rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.03);
+}
+
+.ocr-card-color {
+  width: 8rpx;
+  align-self: stretch;
+  flex-shrink: 0;
+}
+
+.ocr-card-content {
+  flex: 1;
+  padding: 20rpx 16rpx;
+  min-width: 0;
+}
+
+.ocr-card-row {
+  margin-bottom: 8rpx;
+}
+
+.ocr-card-name {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.ocr-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx 16rpx;
+}
+
+.ocr-meta-item {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.ocr-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.ocr-action-btn {
+  padding: 10rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.ocr-action-btn.edit-btn {
+  background: rgba(255, 107, 138, 0.08);
+  color: #ff6b8a;
+}
+
+.ocr-action-btn.del-btn {
+  background: rgba(229, 57, 53, 0.06);
+  color: #e53935;
+  padding: 10rpx 12rpx;
+}
+
+.ocr-review-footer {
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx 28rpx;
+  padding-bottom: calc(20rpx + env(safety-area-inset-bottom));
+  border-top: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.ocr-btn-cancel,
+.ocr-btn-save {
+  height: 84rpx;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+}
+
+.ocr-btn-cancel {
+  flex: 1;
+  background: #f0f0f0;
+  color: #666;
+}
+
+.ocr-btn-save {
+  flex: 2;
+  background: linear-gradient(135deg, #ff9eb5, #ff6b8a);
+  color: #fff;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 138, 0.3);
+}
+
+/* ==================== 响应式适配 ==================== */
+@media screen and (min-width: 768px) {
+  .page {
+    max-width: 750rpx;
+    margin: 0 auto;
+    padding: 0 32rpx;
+  }
+
+  .week-selector {
+    gap: 12rpx;
+  }
+
+  .week-day {
+    padding: 16rpx 8rpx;
+  }
+
+  .bottom-bar {
+    gap: 20rpx;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .status-card {
+    padding: 28rpx 24rpx;
+    border-radius: 24rpx;
+  }
+
+  .status-emoji {
+    font-size: 52rpx;
+    margin-right: 16rpx;
+  }
+
+  .status-text {
+    font-size: 28rpx;
+  }
+
+  .section-card {
+    padding: 22rpx 20rpx;
+    border-radius: 24rpx;
+  }
+
+  .week-selector {
+    gap: 4rpx;
+  }
+
+  .week-day {
+    padding: 10rpx 2rpx;
+    border-radius: 12rpx;
+  }
+
+  .week-day-label {
+    font-size: 20rpx;
+  }
+
+  .week-day-count {
+    font-size: 16rpx;
+  }
+
+  .today-list {
+    gap: 8rpx;
+  }
+
+  .course-item {
+    border-radius: 16rpx;
+  }
+
+  .course-main {
+    padding: 14rpx 12rpx;
+  }
+
+  .course-name {
+    font-size: 26rpx;
+  }
+
+  .bottom-btn {
+    padding: 18rpx;
+    font-size: 24rpx;
+  }
+}

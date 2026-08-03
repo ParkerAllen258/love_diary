@@ -1,0 +1,443 @@
+/* ========== 页面基础 ========== */
+page {
+  background: linear-gradient(180deg, #fff0f5 0%, #ffe4ec 40%, #ffd6e0 100%);
+  min-height: 100%;
+}
+
+.page {
+  padding: 0 24rpx 40rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ========== 爱心落下动画 ========== */
+.hearts-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.falling-heart {
+  position: absolute;
+  top: -60rpx;
+  animation-name: heartFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* 不同的动画时长、延迟、位置和大小，实现随机效果 */
+.heart-0 { animation-duration: 4s; animation-delay: 0s; left: 5%; font-size: 28rpx; }
+.heart-1 { animation-duration: 5s; animation-delay: 1s; left: 25%; font-size: 36rpx; }
+.heart-2 { animation-duration: 6s; animation-delay: 2s; left: 50%; font-size: 32rpx; }
+.heart-3 { animation-duration: 7s; animation-delay: 3s; left: 75%; font-size: 40rpx; }
+.heart-4 { animation-duration: 8s; animation-delay: 4s; left: 90%; font-size: 24rpx; }
+
+@keyframes heartFall {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(50vh) rotate(180deg) scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(110vh) rotate(360deg) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* ========== 顶部标题栏 ========== */
+.header {
+  text-align: center;
+  padding: 30rpx 0 10rpx;
+}
+
+.header-title {
+  font-size: 38rpx;
+  font-weight: bold;
+  color: #d44a6a;
+  letter-spacing: 4rpx;
+}
+
+/* ========== 日期区域 ========== */
+.date-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-radius: 28rpx;
+  padding: 30rpx 36rpx;
+  margin-top: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(255, 150, 170, 0.15);
+  position: relative;
+}
+
+.date-main {
+  display: flex;
+  align-items: center;
+}
+
+.date-day {
+  font-size: 100rpx;
+  font-weight: 900;
+  color: #ff6b8a;
+  line-height: 1;
+  margin-right: 20rpx;
+}
+
+.date-detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-ym {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.date-week {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: bold;
+  margin-top: 4rpx;
+}
+
+.date-time {
+  font-size: 24rpx;
+  color: #ff6b8a;
+  margin-top: 6rpx;
+}
+
+.balloon {
+  font-size: 60rpx;
+  animation: balloonFloat 3s ease-in-out infinite;
+}
+
+@keyframes balloonFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16rpx); }
+}
+
+/* ================= 情侣卡片 ================= */
+
+.love-card {
+  width: 92%;
+  margin: 24rpx auto;
+  padding: 36rpx 24rpx;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
+  border-radius: 32rpx;
+  box-shadow: 0 8rpx 40rpx rgba(255, 120, 160, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+/* 左右用户 - 完全对称 */
+
+.user {
+  flex: 0 0 auto;
+  width: 160rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 头像盒子 */
+
+.avatar-box {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 138, 0.2);
+}
+
+/* 头像 */
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #fff5f7;
+}
+
+/* 换字遮罩 */
+
+.avatar-mask {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 36rpx;
+  height: 36rpx;
+  background: #ff6b9d;
+  color: white;
+  border-radius: 50%;
+  font-size: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3rpx solid white;
+}
+
+/* 微信头像按钮容器 */
+
+.wx-avatar-wrap {
+  margin-top: 8rpx;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 隐藏按钮但保留位置 */
+
+.hidden-btn{
+  visibility: hidden;
+}
+
+/* 微信头像按钮 */
+
+.wx-avatar-btn {
+  font-size: 16rpx;
+  padding: 4rpx 10rpx;
+  line-height: 1.4;
+  min-width: 0;
+  background: #ff6b8a;
+  color: white;
+  border-radius: 16rpx;
+  border: none;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.wx-avatar-btn::after {
+  border: none;
+}
+
+/* 名字 */
+
+.name {
+  margin-top: 12rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #444;
+}
+
+/* 爱情进度条 */
+
+.love-bar {
+  width: 100rpx;
+  height: 16rpx;
+  margin-top: 10rpx;
+  background: #f0e0e5;
+  border-radius: 16rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.love-bar-inner {
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, #ff7eb3, #ff758c);
+  border-radius: 16rpx;
+}
+
+.love-bar-text {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  top: -2rpx;
+  text-align: center;
+  font-size: 16rpx;
+  color: #fff;
+}
+
+/* 中间区域 - 真正居中 */
+
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-width: 0;
+}
+
+/* 爱心 */
+
+.hearts-icon {
+  font-size: 36rpx;
+  letter-spacing: 4rpx;
+}
+
+/* 文案 */
+
+.days-text {
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 天数 */
+
+.days-number {
+  margin-top: 8rpx;
+  font-size: 44rpx;
+  font-weight: 900;
+  color: #ff5c8a;
+  letter-spacing: 2rpx;
+}
+
+/* 纪念日按钮 - 胶囊居中 */
+
+.date-btn {
+  margin-top: 16rpx;
+  width: 220rpx;
+  max-width: 100%;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #ff7eb3, #ff758c);
+  color: white;
+  font-size: 26rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 138, 0.3);
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.date-btn::after {
+  border: none;
+}
+
+/* 未绑定提示 */
+.bind-hint {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #ff9eb5;
+  padding: 8rpx 24rpx;
+  border: 2rpx dashed #ffb6c1;
+  border-radius: 999rpx;
+}
+
+/* ========== 课程小组件 ========== */
+.course-widget {
+  margin: 20rpx auto;
+  width: 92%;
+  padding: 24rpx 28rpx;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(255, 107, 138, 0.08);
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
+}
+.cw-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
+.cw-title { display: flex; align-items: center; font-size: 26rpx; font-weight: 700; color: #555; }
+.cw-icon { margin-right: 8rpx; font-size: 28rpx; }
+.cw-arrow { font-size: 22rpx; color: #ff6b8a; font-weight: 500; }
+.cw-body { display: flex; align-items: center; justify-content: space-between; }
+.cw-status { display: flex; align-items: center; flex: 1; min-width: 0; }
+.cw-status-emoji { font-size: 36rpx; margin-right: 12rpx; flex-shrink: 0; }
+.cw-status-text { font-size: 24rpx; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cw-next { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; margin-left: 16rpx; }
+.cw-next-label { font-size: 18rpx; color: #bbb; }
+.cw-next-name { font-size: 24rpx; font-weight: 700; color: #ff6b8a; margin-top: 2rpx; }
+.cw-next-time { font-size: 20rpx; color: #999; margin-top: 2rpx; }
+
+/* ========== 九宫格 ========== */
+.grid {
+  margin-top: 28rpx;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20rpx;
+}
+
+.grid-item {
+  background: white;
+  border-radius: 24rpx;
+  padding: 32rpx 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2rpx 12rpx rgba(255, 150, 170, 0.1);
+  transition: transform 0.2s;
+}
+
+.grid-item:active {
+  transform: scale(0.95);
+}
+
+.grid-icon {
+  font-size: 56rpx;
+  margin-bottom: 8rpx;
+}
+
+.grid-text {
+  font-size: 26rpx;
+  color: #555;
+  font-weight: 500;
+}
+
+/* ========== 课程小组件 ========== */
+.course-widget{margin:20rpx auto;width:92%;padding:24rpx 28rpx;background:rgba(255,255,255,0.72);backdrop-filter:blur(20rpx);-webkit-backdrop-filter:blur(20rpx);border-radius:24rpx;box-shadow:0 4rpx 20rpx rgba(255,107,138,0.08);border:1rpx solid rgba(255,255,255,0.6)}
+.cw-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16rpx}
+.cw-title{display:flex;align-items:center;font-size:26rpx;font-weight:700;color:#555}
+.cw-icon{margin-right:8rpx;font-size:28rpx}
+.cw-arrow{font-size:22rpx;color:#ff6b8a;font-weight:500}
+.cw-body{display:flex;align-items:center;justify-content:space-between}
+.cw-status{display:flex;align-items:center;flex:1;min-width:0}
+.cw-status-emoji{font-size:36rpx;margin-right:12rpx;flex-shrink:0}
+.cw-status-text{font-size:24rpx;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cw-next{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0;margin-left:16rpx}
+.cw-next-label{font-size:18rpx;color:#bbb}
+.cw-next-name{font-size:24rpx;font-weight:700;color:#ff6b8a;margin-top:2rpx}
+.cw-next-time{font-size:20rpx;color:#999;margin-top:2rpx}
+
+/* ========== 陪伴小组件 ========== */
+.comp-widget {
+  margin: 20rpx auto;
+  width: 92%;
+  padding: 22rpx 26rpx;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
+  border-radius: 22rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255,107,138,0.07);
+  border: 1rpx solid rgba(255,255,255,0.6);
+}
+.compw-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12rpx; }
+.compw-title { display: flex; align-items: center; font-size: 24rpx; font-weight: 700; color: #555; }
+.compw-icon { margin-right: 6rpx; font-size: 26rpx; }
+.compw-arrow { font-size: 20rpx; color: #ff6b8a; font-weight: 500; }
+.compw-body { display: flex; flex-direction: column; align-items: center; }
+
+.compw-heart-row { display: flex; align-items: center; justify-content: center; gap: 16rpx; margin-bottom: 6rpx; }
+.compw-heart { font-size: 44rpx; transition: transform 0.3s; }
+.compw-heart.none { filter: grayscale(1); opacity: 0.4; }
+.compw-heart.half { animation: heartPulse 2s ease-in-out infinite; }
+.compw-heart.both { animation: heartPulse 1.2s ease-in-out infinite; transform: scale(1.08); }
+.compw-heart-emoji { display: block; }
+
+.compw-days-col { display: flex; align-items: baseline; }
+.compw-days-num { font-size: 38rpx; font-weight: 900; color: #ff6b8a; line-height: 1.1; }
+.compw-days-prefix { font-size: 18rpx; color: #ff6b8a; margin-right: 4rpx; font-weight: 500; }
+.compw-days-label { font-size: 20rpx; color: #ff9eb5; margin-left: 3rpx; font-weight: 600; }
+.compw-status-text { font-size: 20rpx; color: #aaa; }

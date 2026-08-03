@@ -1,0 +1,209 @@
+<view class="page">
+
+  <!-- ==================== 相册列表视图 ==================== -->
+  <view wx:if="{{currentView === 'list'}}">
+
+    <!-- 页面标题 -->
+    <view class="page-title">📸 恋爱相册</view>
+
+    <!-- 统计卡片 -->
+    <view class="stats-row">
+      <view class="stat-card">
+        <view class="stat-num">{{albumCount}}</view>
+        <view class="stat-label">相册数</view>
+      </view>
+      <view class="stat-card photos">
+        <view class="stat-num">{{totalPhotos}}</view>
+        <view class="stat-label">总照片</view>
+      </view>
+      <view class="stat-card month">
+        <view class="stat-num">{{monthPhotos}}</view>
+        <view class="stat-label">本月新增</view>
+      </view>
+    </view>
+
+    <!-- 新建相册按钮 -->
+    <view class="create-album-btn" bindtap="showCreateAlbum">
+      <text>📁 + 新建相册</text>
+    </view>
+
+    <!-- 快速上传按钮 -->
+    <view class="quick-upload-btn" bindtap="quickUpload">
+      <text>📷 快速上传照片</text>
+    </view>
+
+    <!-- 相册列表 -->
+    <view class="album-list">
+      <view
+        class="album-card"
+        wx:for="{{albumList}}"
+        wx:key="_id"
+        bindtap="openAlbum"
+        data-id="{{item._id}}"
+        data-name="{{item.name}}"
+      >
+        <!-- 封面图 -->
+        <view class="album-cover">
+          <image
+            wx:if="{{item._coverUrl}}"
+            class="cover-img"
+            src="{{item._coverUrl}}"
+            mode="aspectFill"
+          ></image>
+          <view wx:else class="cover-placeholder">
+            <text class="cover-emoji">📷</text>
+          </view>
+          <view class="cover-overlay"></view>
+          <view class="cover-count">{{item._photoCount || 0}} 张</view>
+        </view>
+        <!-- 相册信息 -->
+        <view class="album-info">
+          <view class="album-name">{{item.name}}</view>
+          <view class="album-desc" wx:if="{{item.description}}">{{item.description}}</view>
+          <view class="album-meta">
+            <text class="album-date">{{item._dateText}}</text>
+          </view>
+        </view>
+        <!-- 操作 -->
+        <view class="album-actions">
+          <view
+            class="album-act edit"
+            data-id="{{item._id}}"
+            data-name="{{item.name}}"
+            data-desc="{{item.description}}"
+            catchtap="showEditAlbum"
+          >编辑</view>
+          <view
+            class="album-act del"
+            data-id="{{item._id}}"
+            data-name="{{item.name}}"
+            catchtap="deleteAlbum"
+          >删除</view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view wx:if="{{albumList.length === 0}}" class="empty-state">
+        <view class="empty-emoji">📸</view>
+        <view class="empty-title">还没有相册</view>
+        <view class="empty-desc">点击上方按钮创建第一个相册吧~</view>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- ==================== 相册详情视图 ==================== -->
+  <view wx:if="{{currentView === 'detail'}}">
+
+    <!-- 顶部导航 -->
+    <view class="detail-nav">
+      <view class="nav-back" bindtap="goBackToList">
+        <text class="nav-arrow">‹</text>
+        <text>返回</text>
+      </view>
+      <view class="nav-title">{{currentAlbum.name}}</view>
+      <view class="nav-action" bindtap="uploadToAlbum">
+        <text>📷 上传</text>
+      </view>
+    </view>
+
+    <!-- 相册信息 -->
+    <view class="detail-header">
+      <view class="detail-info">
+        <view class="detail-name">{{currentAlbum.name}}</view>
+        <view class="detail-desc" wx:if="{{currentAlbum.description}}">{{currentAlbum.description}}</view>
+        <view class="detail-meta">
+          <text>{{photoList.length}} 张照片</text>
+          <text wx:if="{{currentAlbum._dateText}}"> · {{currentAlbum._dateText}} 创建</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 照片网格 -->
+    <view class="photo-grid" wx:if="{{photoList.length > 0}}">
+      <view
+        class="photo-item"
+        wx:for="{{photoList}}"
+        wx:key="_id"
+      >
+        <image
+          class="photo-img"
+          src="{{item.fileID}}"
+          mode="aspectFill"
+          data-url="{{item.fileID}}"
+          data-urls="{{item._urlsForPreview}}"
+          bindtap="previewPhoto"
+        ></image>
+        <view class="photo-mask">
+          <view
+            class="photo-del"
+            data-id="{{item._id}}"
+            catchtap="deletePhoto"
+          >🗑️</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{photoList.length === 0}}" class="empty-state">
+      <view class="empty-emoji">🖼️</view>
+      <view class="empty-title">相册还是空的</view>
+      <view class="empty-desc">点击右上角「上传」添加照片</view>
+    </view>
+
+  </view>
+
+  <!-- ==================== 新建/编辑相册弹窗 ==================== -->
+  <view class="modal-mask" wx:if="{{showAlbumModal}}" bindtap="hideAlbumModal"></view>
+  <view class="modal-card" wx:if="{{showAlbumModal}}">
+    <view class="modal-title">{{editingAlbumId ? '编辑相册' : '新建相册'}}</view>
+
+    <!-- 封面选择 -->
+    <view class="modal-cover" bindtap="chooseAlbumCover">
+      <image
+        wx:if="{{albumCoverUrl}}"
+        class="modal-cover-img"
+        src="{{albumCoverUrl}}"
+        mode="aspectFill"
+      ></image>
+      <view wx:else class="modal-cover-placeholder">
+        <text class="modal-cover-emoji">📷</text>
+        <text class="modal-cover-text">点击选择封面（可选）</text>
+      </view>
+    </view>
+
+    <!-- 名称 -->
+    <view class="modal-group">
+      <view class="modal-label">相册名称</view>
+      <input
+        class="modal-input"
+        placeholder="给相册起个名字..."
+        value="{{albumFormName}}"
+        bindinput="onAlbumNameInput"
+        maxlength="20"
+      />
+    </view>
+
+    <!-- 描述 -->
+    <view class="modal-group">
+      <view class="modal-label">相册描述（选填）</view>
+      <textarea
+        class="modal-textarea"
+        placeholder="记录这个相册的故事..."
+        value="{{albumFormDesc}}"
+        bindinput="onAlbumDescInput"
+        maxlength="100"
+        auto-height
+      />
+    </view>
+
+    <!-- 按钮 -->
+    <view class="modal-btns">
+      <button class="modal-btn cancel" bindtap="hideAlbumModal">取消</button>
+      <button class="modal-btn confirm" bindtap="{{editingAlbumId ? 'updateAlbum' : 'createAlbum'}}">
+        {{editingAlbumId ? '保存修改' : '创建相册'}}
+      </button>
+    </view>
+  </view>
+
+</view>

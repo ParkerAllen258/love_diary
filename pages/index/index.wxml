@@ -1,0 +1,175 @@
+<view class="page" style="width: 699rpx; display: block; box-sizing: content-box; left: 0rpx; top: 0rpx">
+
+<!-- 爱心落下动画容器 -->
+<view class="hearts-container">
+  <view
+    class="falling-heart heart-{{index % 5}}"
+    wx:for="{{hearts}}"
+    wx:key="id"
+  >{{item.emoji}}</view>
+</view>
+
+<!-- 顶部标题栏 -->
+<view class="header">
+  <view class="header-title">💕 情侣空间 💕</view>
+</view>
+
+<!-- 日期区域 -->
+<view class="date-section">
+  <view class="date-main">
+    <view class="date-day">{{day}}</view>
+    <view class="date-detail">
+      <view class="date-ym">{{year}}年{{month}}月</view>
+      <view class="date-week">{{week}}</view>
+      <view class="date-time">{{time}}</view>
+    </view>
+  </view>
+  <!-- 装饰气球 -->
+  <view class="balloon">🎈</view>
+</view>
+
+<!-- 情侣卡片 -->
+<view class="love-card" style="width: 693rpx; display: flex; box-sizing: border-box">
+
+  <!-- 左侧 -->
+  <view class="user">
+    <view class="avatar-box" bindtap="onBoyAvatarTap">
+      <image class="avatar" src="{{boyAvatar || defaultAvatar}}" mode="aspectFill"></image>
+      <view class="avatar-mask" wx:if="{{hasCouple}}">换</view>
+    </view>
+    <view 
+  class="wx-avatar-wrap {{hasCouple && myRole === 'user1' ? '' : 'hidden-btn'}}"
+>
+      <button class="wx-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onBoyWxAvatar">微信头像</button>
+    </view>
+    <view class="name">{{boyName}}</view>
+    <view class="love-bar">
+      <view class="love-bar-inner"></view>
+      <text class="love-bar-text">50% ❤️</text>
+    </view>
+  </view>
+
+  <!-- 中间 -->
+  <view class="center" bindtap="{{hasCouple ? 'chooseDate' : 'onCenterTap'}}">
+    <view class="hearts-icon">❤️❤️❤️</view>
+    <view class="days-text">在一起 ✨</view>
+    <view class="days-number">已经{{loveDays}}天</view>
+    <button class="date-btn" wx:if="{{hasCouple}}" catchtap="chooseDate">设置在一起日期</button>
+    <view class="bind-hint" wx:if="{{!hasCouple}}">点击绑定情侣 💕</view>
+  </view>
+
+  <!-- 右侧 -->
+  <view class="user">
+    <view class="avatar-box" bindtap="onGirlAvatarTap">
+      <image class="avatar" src="{{girlAvatar || defaultAvatar}}" mode="aspectFill"></image>
+      <view class="avatar-mask" wx:if="{{hasCouple}}">换</view>
+    </view>
+    <view 
+  class="wx-avatar-wrap {{hasCouple && myRole === 'user2' ? '' : 'hidden-btn'}}"
+>
+      <button class="wx-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onGirlWxAvatar">微信头像</button>
+    </view>
+    <view class="name">{{girlName}}</view>
+    <view class="love-bar">
+      <view class="love-bar-inner"></view>
+      <text class="love-bar-text">50% ❤️</text>
+    </view>
+  </view>
+
+</view>
+
+<!-- 课程小组件 -->
+<view class="course-widget" wx:if="{{hasCouple && courseWidget.show}}" bindtap="goCourse">
+  <view class="cw-header">
+    <view class="cw-title">
+      <text class="cw-icon">📝</text>
+      <text>今日课程</text>
+    </view>
+    <view class="cw-arrow">查看课表 ›</view>
+  </view>
+  <view class="cw-body">
+    <view class="cw-status {{courseWidget.status}}">
+      <text class="cw-status-emoji">{{courseWidget.emoji}}</text>
+      <text class="cw-status-text">{{courseWidget.statusText}}</text>
+    </view>
+    <view wx:if="{{courseWidget.nextCourse}}" class="cw-next">
+      <text class="cw-next-label">下一节</text>
+      <text class="cw-next-name">{{courseWidget.nextCourse.name}}</text>
+      <text class="cw-next-time">{{courseWidget.nextCourse.time}}</text>
+    </view>
+  </view>
+</view>
+
+<!-- 陪伴小组件 -->
+<view class="comp-widget" wx:if="{{hasCouple && compWidget.show}}" bindtap="goCompanion">
+  <view class="compw-header">
+    <view class="compw-title"><text class="compw-icon">💞</text><text>陪伴记录</text></view>
+    <view class="compw-arrow">查看详情 ›</view>
+  </view>
+  <view class="compw-body">
+    <view class="compw-heart-row">
+      <view class="compw-heart {{compWidget.heartStatus}}">
+        <text class="compw-heart-emoji">{{compWidget.emoji}}</text>
+      </view>
+      <view class="compw-days-col">
+        <text class="compw-days-prefix">在一起</text>
+        <text wx:if="{{compWidget.loveDateSet}}" class="compw-days-num">{{compWidget.loveDays}}</text>
+        <text wx:else class="compw-days-num">--</text>
+        <text class="compw-days-label">天</text>
+      </view>
+    </view>
+    <view class="compw-status-text">{{compWidget.statusText}}</view>
+  </view>
+</view>
+
+<!-- 九宫格功能入口 -->
+<view class="grid">
+
+  <view class="grid-item" bindtap="goAnniversary">
+    <view class="grid-icon">📅</view>
+    <view class="grid-text">纪念日</view>
+  </view>
+
+  <view class="grid-item" bindtap="goMoney">
+    <view class="grid-icon">💰</view>
+    <view class="grid-text">窝囊费</view>
+  </view>
+
+  <view class="grid-item" bindtap="goCourse">
+    <view class="grid-icon">📝</view>
+    <view class="grid-text">课程表</view>
+  </view>
+
+  <view class="grid-item" bindtap="goGoals">
+    <view class="grid-icon">🎯</view>
+    <view class="grid-text">年度目标</view>
+  </view>
+
+  <view class="grid-item" bindtap="goCost">
+    <view class="grid-icon">🧮</view>
+    <view class="grid-text">算成本</view>
+  </view>
+
+  <view class="grid-item" bindtap="goNote">
+    <view class="grid-icon">📒</view>
+    <view class="grid-text">记事本</view>
+  </view>
+
+  <view class="grid-item" bindtap="goPet">
+    <view class="grid-icon">🤖</view>
+    <view class="grid-text">小精灵</view>
+  </view>
+
+  <view class="grid-item" bindtap="goSchedule">
+    <view class="grid-icon">📆</view>
+    <view class="grid-text">日程</view>
+  </view>
+
+  <view class="grid-item" bindtap="goAlbum">
+    <view class="grid-icon">🖼️</view>
+    <view class="grid-text">相册</view>
+  </view>
+
+</view>
+
+</view>

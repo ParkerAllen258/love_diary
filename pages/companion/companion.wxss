@@ -1,0 +1,558 @@
+page { background: linear-gradient(180deg, #fff0f5 0%, #ffe8ee 30%, #ffd6e0 100%); min-height: 100vh; }
+.page { padding: 0 0 20rpx; }
+
+/* ==================== 未绑定 ==================== */
+.unbound-card { display:flex; flex-direction:column; align-items:center; padding:120rpx 60rpx; }
+.unbound-emoji { font-size:100rpx; margin-bottom:24rpx; }
+.unbound-title { font-size:34rpx; font-weight:700; color:#d44a6a; margin-bottom:12rpx; }
+.unbound-desc { font-size:26rpx; color:#999; }
+
+/* ==================== 顶部头像 + 恋爱天数 ==================== */
+.top-hero {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 36rpx 24rpx 28rpx; margin-bottom: 16rpx;
+}
+
+.hero-avatar { display: flex; flex-direction: column; align-items: center; width: 140rpx; flex-shrink: 0; }
+.hero-avatar.left { margin-right: 0; }
+.hero-avatar.right { margin-left: 0; }
+
+.hero-avatar-img {
+  width: 100rpx; height: 100rpx; border-radius: 50%;
+  border: 3rpx solid rgba(255,107,138,0.3); box-shadow: 0 4rpx 16rpx rgba(255,107,138,0.15);
+  background: #ffe0ec;
+}
+.hero-name { font-size: 24rpx; color: #888; margin-top: 8rpx; font-weight: 600; max-width: 140rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+
+/* 中间区域 */
+.hero-center { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
+
+/* 爱心签到状态 */
+.hero-heart-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 8rpx; }
+.hero-heart { width: 72rpx; height: 72rpx; position: relative; overflow: hidden; }
+
+.h-left, .h-right {
+  font-size: 64rpx; line-height: 72rpx; position: absolute; top: 0;
+  width: 36rpx; overflow: hidden;
+}
+.h-left { left: 0; text-align: left; }
+.h-right { right: 0; text-align: right; direction: rtl; }
+
+/* none: both gray */
+.heart-none .h-left, .heart-none .h-right { filter: grayscale(1); opacity: 0.3; }
+
+/* half: left red, right gray */
+.heart-half .h-left { filter: none; opacity: 1; }
+.heart-half .h-right { filter: grayscale(1); opacity: 0.3; }
+.heart-half { animation: heartPulse 2s ease-in-out infinite; }
+
+/* both: both red */
+.heart-both .h-left, .heart-both .h-right { filter: none; opacity: 1; }
+.heart-both { animation: heartPulse 1.2s ease-in-out infinite; }
+
+@keyframes heartPulse {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.15); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.1); }
+  60% { transform: scale(1); }
+}
+
+.hero-tip { font-size: 20rpx; color: #bbb; margin-top: 4rpx; text-align: center; }
+
+/* 恋爱天数 */
+.hero-days { display: flex; align-items: baseline; margin-bottom: 4rpx; }
+.hero-days-num { font-size: 52rpx; font-weight: 900; color: #ff6b8a; line-height: 1.1; }
+.hero-days-prefix { font-size: 22rpx; color: #ff6b8a; margin-right: 6rpx; font-weight: 500; }
+.hero-days-label { font-size: 26rpx; color: #ff9eb5; margin-left: 4rpx; font-weight: 600; }
+
+.hero-set-hint { font-size: 20rpx; color: #ff6b8a; padding: 8rpx 16rpx; background: rgba(255,182,193,0.1); border-radius: 999rpx; border: 1rpx dashed rgba(255,182,193,0.35); text-align: center; max-width: 260rpx; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; align-self: center; }
+.hero-set-date { font-size: 20rpx; color: #bbb; text-align: center; }
+
+/* ==================== 今日状态条 ==================== */
+.today-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20rpx 24rpx; margin: 0 24rpx 16rpx;
+  background: rgba(255,255,255,0.75); backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx); border-radius: 20rpx;
+  box-shadow: 0 2rpx 16rpx rgba(255,150,170,0.06); border: 1rpx solid rgba(255,255,255,0.6);
+}
+.today-left { display: flex; align-items: center; }
+.today-emoji { font-size: 36rpx; margin-right: 10rpx; }
+.today-text { font-size: 26rpx; color: #666; font-weight: 600; }
+.today-btn {
+  padding: 12rpx 28rpx; background: linear-gradient(135deg, #ff9eb5, #ff6b8a);
+  color: #fff; border-radius: 999rpx; font-size: 24rpx; font-weight: 600;
+  box-shadow: 0 4rpx 16rpx rgba(255,107,138,0.3);
+  animation: btnPulse 2.5s ease-in-out infinite; transition: transform 0.15s ease;
+}
+.today-btn:active { transform: scale(0.94); }
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 4rpx 16rpx rgba(255,107,138,0.3); }
+  50% { box-shadow: 0 6rpx 24rpx rgba(255,107,138,0.45); }
+}
+
+/* ==================== 统计卡片 ==================== */
+.stats-row { display: flex; gap: 14rpx; margin: 0 24rpx 16rpx; }
+.stat-card {
+  flex: 1; padding: 22rpx 8rpx; background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(16rpx); -webkit-backdrop-filter: blur(16rpx);
+  border-radius: 20rpx; box-shadow: 0 2rpx 16rpx rgba(255,150,170,0.06);
+  border: 1rpx solid rgba(255,255,255,0.5); display: flex; flex-direction: column; align-items: center;
+}
+.stat-num { font-size: 40rpx; font-weight: 900; }
+.stat-num.pink { color: #ff6b8a; }
+.stat-num.gray { color: #8b9dc3; }
+.stat-label { font-size: 22rpx; color: #888; margin-top: 4rpx; font-weight: 600; }
+.stat-edit-icon { font-size: 18rpx; color: #ccc; margin-left: 2rpx; }
+.stat-card-edit { position: relative; }
+.stat-card-edit:active { transform: scale(0.96); opacity: 0.85; }
+
+/* ==================== 纪录之最 ==================== */
+.records-highlight { display: flex; gap: 14rpx; margin: 0 24rpx 16rpx; }
+.highlight-item {
+  flex: 1; padding: 18rpx 14rpx; background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(14rpx); -webkit-backdrop-filter: blur(14rpx);
+  border-radius: 18rpx; border: 1rpx solid rgba(255,182,193,0.18); display: flex; align-items: center;
+}
+.highlight-icon { font-size: 28rpx; margin-right: 8rpx; flex-shrink: 0; }
+.highlight-text { font-size: 22rpx; color: #666; line-height: 1.4; }
+.highlight-num { font-size: 26rpx; font-weight: 900; color: #ff6b8a; }
+
+/* ==================== 通用卡片 ==================== */
+.section-card {
+  margin: 0 24rpx 16rpx; padding: 24rpx;
+  background: rgba(255,255,255,0.68); backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx); border-radius: 24rpx;
+  box-shadow: 0 2rpx 16rpx rgba(255,107,138,0.05); border: 1rpx solid rgba(255,255,255,0.45); overflow: hidden;
+}
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18rpx; }
+.section-title { display: flex; align-items: center; font-size: 28rpx; font-weight: 700; color: #444; }
+.title-icon { margin-right: 8rpx; font-size: 30rpx; }
+
+/* ==================== 热力图 ==================== */
+.month-switch { display: flex; align-items: center; gap: 6rpx; }
+.month-arrow {
+  width: 48rpx; height: 48rpx; display: flex; align-items: center; justify-content: center;
+  font-size: 36rpx; color: #ff6b8a; background: rgba(255,107,138,0.06); border-radius: 50%;
+}
+.month-center { display: flex; align-items: center; gap: 4rpx; padding: 8rpx 18rpx; background: rgba(255,107,138,0.06); border-radius: 999rpx; }
+.month-text { font-size: 24rpx; font-weight: 700; color: #555; }
+.month-drop { font-size: 20rpx; color: #ff6b8a; }
+
+.heatmap-legend { display: flex; gap: 20rpx; margin-bottom: 14rpx; }
+.legend-item { display: flex; align-items: center; font-size: 18rpx; color: #aaa; }
+.legend-dot { width: 18rpx; height: 18rpx; border-radius: 5rpx; margin-right: 6rpx; }
+.legend-dot.together { background: rgba(255,107,138,0.35); }
+.legend-dot.half { background: rgba(255,107,138,0.12); }
+.legend-dot.apart { background: rgba(139,157,195,0.35); }
+
+.hm-week-row { display: flex; justify-content: space-around; margin-bottom: 10rpx; padding: 0 4rpx; }
+.hm-wd { width: 64rpx; text-align: center; font-size: 18rpx; color: #ccc; }
+
+.hm-grid { display: flex; flex-wrap: wrap; gap: 10rpx; }
+.hm-cell {
+  width: 64rpx; height: 64rpx; border-radius: 14rpx;
+  display: flex; align-items: center; justify-content: center; background: #f8f8f8;
+}
+.hm-cell.empty { background: transparent; }
+.hm-cell.future { background: #f5f5f5; }
+.hm-cell.today { box-shadow: 0 0 0 3rpx #ff6b8a; transform: scale(1.08); z-index: 2; }
+
+.hm-cell.type-none { background: #f8f8f8; }
+.hm-cell.type-half { background: rgba(255,107,138,0.08); }
+.hm-cell.type-together { background: rgba(255,107,138,0.28); }
+.hm-cell.type-apart { background: rgba(139,157,195,0.28); }
+
+.hm-num { font-size: 22rpx; color: #777; font-weight: 600; }
+.hm-cell.type-half .hm-num { color: #d4a0ae; }
+.hm-cell.type-together .hm-num { color: #ff6b8a; }
+.hm-cell.type-apart .hm-num { color: #5a6d8a; }
+.hm-cell.future .hm-num { color: #ddd; }
+
+/* ==================== 共同种树 ==================== */
+.tree-card {
+  margin: 0 24rpx 16rpx; padding: 28rpx 24rpx 22rpx;
+  background: linear-gradient(180deg, #f0faf0 0%, #fafff5 40%, #fff 100%);
+  border-radius: 28rpx; box-shadow: 0 4rpx 24rpx rgba(76,175,80,0.08);
+  border: 1rpx solid rgba(76,175,80,0.12); overflow: hidden; position: relative;
+}
+
+.tree-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx;
+}
+.tree-header-left { display: flex; align-items: center; }
+.tree-title-icon { font-size: 32rpx; margin-right: 8rpx; }
+.tree-title { font-size: 28rpx; font-weight: 700; color: #3a6b3a; }
+
+.tree-streak { display: flex; align-items: center; padding: 6rpx 14rpx; background: rgba(255,152,0,0.1); border-radius: 999rpx; }
+.streak-icon { font-size: 22rpx; margin-right: 4rpx; }
+.streak-num { font-size: 26rpx; font-weight: 900; color: #ff9800; margin-right: 2rpx; }
+.streak-label { font-size: 18rpx; color: #ff9800; }
+
+/* 树的可视化 */
+.tree-visual {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  height: 260rpx; position: relative; margin-bottom: 10rpx;
+}
+
+.tree-bg-deco { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+.tree-cloud {
+  position: absolute; width: 80rpx; height: 36rpx; background: rgba(255,255,255,0.6);
+  border-radius: 999rpx;
+}
+.tree-cloud::after {
+  content: ''; position: absolute; width: 52rpx; height: 26rpx;
+  background: rgba(255,255,255,0.8); border-radius: 999rpx;
+}
+.cloud-left { top: 30rpx; left: 20rpx; }
+.cloud-left::after { top: -16rpx; left: 14rpx; }
+.cloud-right { top: 60rpx; right: 30rpx; }
+.cloud-right::after { top: -14rpx; left: 10rpx; }
+
+.tree-emoji-wrap {
+  position: relative; z-index: 2; display: flex; align-items: center; justify-content: center;
+}
+.tree-main-emoji { font-size: 120rpx; filter: drop-shadow(0 6rpx 12rpx rgba(0,0,0,0.08)); transition: all 0.4s ease; }
+
+/* 阶段微调 */
+.stage-0 .tree-main-emoji { font-size: 80rpx; }
+.stage-1 .tree-main-emoji { font-size: 95rpx; }
+.stage-2 .tree-main-emoji { font-size: 110rpx; }
+.stage-3 .tree-main-emoji { font-size: 120rpx; }
+.stage-4 .tree-main-emoji { font-size: 125rpx; animation: treeBloom 3s ease-in-out infinite; }
+.stage-5 .tree-main-emoji { font-size: 130rpx; animation: treeBounce 2s ease-in-out infinite; }
+
+@keyframes treeBloom {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+@keyframes treeBounce {
+  0%, 100% { transform: scale(1) translateY(0); }
+  30% { transform: scale(1.05) translateY(-6rpx); }
+  60% { transform: scale(0.98) translateY(0); }
+}
+
+/* 特效粒子 */
+.tree-sparkles { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
+.sparkle { position: absolute; font-size: 24rpx; animation: sparkleFloat 2.5s ease-in-out infinite; }
+.s1 { top: 10rpx; left: 30%; animation-delay: 0s; }
+.s2 { top: 20rpx; right: 30%; animation-delay: 0.8s; }
+.s3 { top: 50rpx; left: 40%; animation-delay: 1.6s; }
+@keyframes sparkleFloat {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(0.5); }
+  50% { opacity: 1; transform: translateY(-16rpx) scale(1.1); }
+}
+
+/* 花盆 */
+.tree-pot { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; margin-top: -8rpx; }
+.pot-rim {
+  width: 100rpx; height: 14rpx; background: #c8956c; border-radius: 6rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);
+}
+.pot-body {
+  width: 76rpx; height: 36rpx; background: linear-gradient(135deg, #d4a574, #c8956c);
+  border-radius: 4rpx 4rpx 16rpx 16rpx; box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.08);
+}
+
+/* 阶段信息 */
+.tree-info { text-align: center; margin-bottom: 14rpx; }
+.tree-stage-name { display: block; font-size: 32rpx; font-weight: 800; color: #3a6b3a; }
+.tree-stage-desc { display: block; font-size: 22rpx; color: #8aab8a; margin-top: 4rpx; }
+
+/* 成长进度条 */
+.tree-progress-wrap { display: flex; align-items: center; gap: 10rpx; margin-bottom: 18rpx; padding: 0 8rpx; }
+.tree-progress-bar { flex: 1; height: 14rpx; background: #e8f0e8; border-radius: 999rpx; overflow: hidden; }
+.tree-progress-fill { height: 100%; background: linear-gradient(90deg, #81c784, #4caf50, #66bb6a); border-radius: 999rpx; transition: width 0.6s ease; box-shadow: 0 2rpx 8rpx rgba(76,175,80,0.3); }
+.tree-progress-text { font-size: 22rpx; font-weight: 700; color: #4caf50; min-width: 52rpx; text-align: right; }
+.tree-next-hint { font-size: 18rpx; color: #b8d4b8; flex-shrink: 0; }
+
+/* 操作按钮 */
+.tree-actions { display: flex; align-items: center; justify-content: space-between; }
+.tree-action-btn {
+  padding: 14rpx 28rpx; border-radius: 999rpx; font-size: 24rpx; font-weight: 700;
+  background: linear-gradient(135deg, #81c784, #4caf50); color: #fff;
+  box-shadow: 0 4rpx 14rpx rgba(76,175,80,0.25); transition: all 0.15s;
+}
+.tree-action-btn:active { transform: scale(0.94); }
+.tree-action-btn.done { background: #e0e0e0; color: #aaa; box-shadow: none; }
+.tree-action-tip { font-size: 20rpx; color: #a0c0a0; }
+
+/* ==================== 树初始状态 ==================== */
+.tree-init {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 36rpx 20rpx; text-align: center;
+}
+.tree-init-emoji { font-size: 100rpx; margin-bottom: 20rpx; animation: seedBounce 2s ease-in-out infinite; }
+@keyframes seedBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-12rpx) scale(1.08); }
+}
+.tree-init-title { font-size: 30rpx; font-weight: 700; color: #3a6b3a; margin-bottom: 10rpx; }
+.tree-init-desc { font-size: 22rpx; color: #8aab8a; line-height: 1.6; max-width: 450rpx; margin-bottom: 16rpx; }
+.tree-init-hint {
+  font-size: 20rpx; color: #ff9800;
+  background: rgba(255,152,0,0.08); padding: 12rpx 20rpx;
+  border-radius: 999rpx; max-width: 500rpx;
+}
+
+/* ==================== 游戏区 ==================== */
+.game-scroll { white-space: nowrap; width: 100%; }
+.game-item {
+  display: inline-flex; flex-direction: column; align-items: center;
+  width: 180rpx; padding: 20rpx 12rpx; margin-right: 14rpx;
+  background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,245,247,0.8));
+  border-radius: 20rpx; border: 1rpx solid rgba(255,182,193,0.15);
+  box-shadow: 0 2rpx 10rpx rgba(255,150,170,0.04); transition: transform 0.15s;
+}
+.game-active-item {
+  border-color: rgba(76,175,80,0.25);
+  background: linear-gradient(135deg, #f5faf5, #f0f8f0);
+  box-shadow: 0 3rpx 16rpx rgba(76,175,80,0.08);
+}
+.game-active-item:active { transform: scale(0.96); }
+.game-coming-item { opacity: 0.7; }
+.game-emoji { font-size: 44rpx; margin-bottom: 8rpx; }
+.game-title { font-size: 24rpx; font-weight: 700; color: #444; text-align: center; }
+.game-desc { font-size: 18rpx; color: #bbb; text-align: center; margin-top: 4rpx; margin-bottom: 8rpx; white-space: normal; }
+.game-tag {
+  font-size: 16rpx; padding: 4rpx 12rpx; border-radius: 999rpx;
+}
+.tag-coming {
+  color: #ffb6c1; background: rgba(255,182,193,0.08);
+  border: 1rpx dashed rgba(255,182,193,0.25);
+}
+.tag-active {
+  color: #4caf50; background: rgba(76,175,80,0.08);
+  border: 1rpx solid rgba(76,175,80,0.2); font-weight: 600;
+}
+
+/* ==================== 年度报告入口 ==================== */
+.annual-entry { margin: 4rpx 24rpx 20rpx; }
+.annual-bg {
+  padding: 28rpx 24rpx; background: linear-gradient(135deg, #ffe0ec, #ffccd5, #ffe0ec);
+  border-radius: 24rpx; overflow: hidden; box-shadow: 0 4rpx 20rpx rgba(255,107,138,0.12);
+}
+.annual-content { display: flex; align-items: center; }
+.annual-icon { font-size: 44rpx; margin-right: 14rpx; }
+.annual-text { flex: 1; }
+.annual-title { font-size: 26rpx; font-weight: 700; color: #fff; text-shadow: 0 1rpx 3rpx rgba(255,107,138,0.25); }
+.annual-sub { font-size: 20rpx; color: rgba(255,255,255,0.8); margin-top: 2rpx; }
+.annual-arrow { font-size: 40rpx; color: rgba(255,255,255,0.75); font-weight: 300; }
+.bottom-space { height: 40rpx; }
+
+/* ==================== 弹窗通用 ==================== */
+.mask { position: fixed; top:0;right:0;bottom:0;left:0; background:rgba(0,0,0,0.35); z-index:200; animation:fadeIn 0.25s ease; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+/* ==================== 日期选择器 ==================== */
+.picker-sheet { position: fixed; left:0;right:0;bottom:-100%; background:#fff; border-radius:36rpx 36rpx 0 0; z-index:201; padding:36rpx 28rpx 44rpx; padding-bottom:calc(44rpx + env(safety-area-inset-bottom)); transition:bottom 0.3s ease; }
+.picker-sheet.show { bottom: 0; }
+.picker-title { font-size:32rpx; font-weight:700; text-align:center; color:#333; margin-bottom:28rpx; }
+.picker-row { display:flex; gap:20rpx; margin-bottom:32rpx; }
+.picker-col { flex:1; display:flex; flex-direction:column; align-items:center; }
+.picker-label { font-size:22rpx; color:#bbb; margin-bottom:10rpx; }
+.picker-value {
+  width:100%; height:88rpx; display:flex; align-items:center; justify-content:center;
+  background:#f8f8f8; border-radius:18rpx; font-size:30rpx; font-weight:700; color:#ff6b8a;
+}
+.picker-btns { display:flex; gap:16rpx; }
+
+/* ==================== 月份选择器 ==================== */
+.mp-year-row { display: flex; align-items: center; justify-content: center; gap: 24rpx; margin-bottom: 24rpx; }
+.mp-yr-btn {
+  width: 52rpx; height: 52rpx; display: flex; align-items: center; justify-content: center;
+  font-size: 36rpx; color: #ff6b8a; background: rgba(255,107,138,0.06); border-radius: 50%;
+}
+.mp-yr-text { font-size: 32rpx; font-weight: 700; color: #444; }
+.mp-month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16rpx; margin-bottom: 24rpx; }
+.mp-month-item {
+  height: 80rpx; display: flex; align-items: center; justify-content: center;
+  background: #f8f8f8; border-radius: 18rpx; font-size: 26rpx; color: #666; font-weight: 600;
+  border: 2rpx solid transparent;
+}
+.mp-month-item.active { background: rgba(255,107,138,0.1); border-color: #ff6b8a; color: #ff6b8a; }
+
+/* ==================== 签到弹窗 ==================== */
+.checkin-sheet { position: fixed; left:0;right:0;bottom:-100%; max-height:85vh; background:#fff; border-radius:36rpx 36rpx 0 0; z-index:201; padding:28rpx 24rpx; padding-bottom:calc(28rpx + env(safety-area-inset-bottom)); transition:bottom 0.3s ease; overflow-y:auto; }
+.checkin-sheet.show { bottom: 0; }
+.sheet-title { font-size:32rpx; font-weight:700; text-align:center; color:#333; margin-bottom:24rpx; }
+.sheet-section { margin-bottom:22rpx; }
+.sheet-label { font-size:23rpx; font-weight:600; color:#888; margin-bottom:10rpx; }
+
+.status-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10rpx; }
+.status-item {
+  display:flex; flex-direction:column; align-items:center; padding:18rpx 6rpx; border-radius:18rpx;
+  background:#f8f8f8; border:2rpx solid transparent; transition:all 0.15s;
+}
+.status-item.active { background:rgba(255,107,138,0.08); border-color:#ff6b8a; }
+.si-emoji { font-size:36rpx; margin-bottom:4rpx; }
+.si-label { font-size:18rpx; color:#666; font-weight:600; }
+.status-item.active .si-label { color:#ff6b8a; }
+
+.emotion-row { display:flex; gap:8rpx; flex-wrap:wrap; }
+.emotion-item {
+  display:flex; flex-direction:column; align-items:center; padding:12rpx 14rpx;
+  border-radius:16rpx; background:#f8f8f8; border:2rpx solid transparent; transition:all 0.15s;
+}
+.emotion-item.active { background:rgba(255,107,138,0.08); border-color:#ff6b8a; }
+.ei-emoji { font-size:32rpx; margin-bottom:3rpx; }
+.ei-label { font-size:17rpx; color:#999; }
+.emotion-item.active .ei-label { color:#ff6b8a; }
+
+.sheet-input { height:80rpx; background:#f8f8f8; border-radius:16rpx; padding:0 20rpx; font-size:28rpx; box-sizing:border-box; }
+.sheet-textarea { width:100%; min-height:110rpx; background:#f8f8f8; border-radius:16rpx; padding:16rpx 20rpx; font-size:28rpx; box-sizing:border-box; }
+
+.photo-area { display:flex; }
+.photo-add-btn { padding:26rpx 36rpx; background:#f8f8f8; border-radius:16rpx; font-size:24rpx; color:#bbb; border:2rpx dashed #e0e0e0; }
+.photo-preview { position:relative; width:160rpx; height:160rpx; border-radius:16rpx; overflow:hidden; }
+.photo-img { width:100%; height:100%; }
+.photo-remove { position:absolute; top:6rpx; right:6rpx; width:36rpx; height:36rpx; background:rgba(0,0,0,0.5); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22rpx; }
+
+.sheet-btns { display:flex; gap:14rpx; margin-top:24rpx; }
+.btn-cancel, .btn-save { flex:1; height:80rpx; border-radius:999rpx; font-size:26rpx; font-weight:600; display:flex; align-items:center; justify-content:center; border:none; }
+.btn-cancel { background:#f0f0f0; color:#666; }
+.btn-save { background:linear-gradient(135deg,#ff9eb5,#ff6b8a); color:#fff; box-shadow:0 4rpx 14rpx rgba(255,107,138,0.3); }
+
+/* ==================== 年度报告弹窗 ==================== */
+.annual-report { position:fixed; left:0;right:0;bottom:-100%; max-height:90vh; background:linear-gradient(180deg,#fff5f7,#fff); border-radius:36rpx 36rpx 0 0; z-index:201; padding:44rpx 28rpx 36rpx; padding-bottom:calc(36rpx + env(safety-area-inset-bottom)); transition:bottom 0.3s ease; overflow-y:auto; }
+.annual-report.show { bottom:0; }
+.report-close { position:absolute; top:20rpx; right:24rpx; width:52rpx; height:52rpx; display:flex; align-items:center; justify-content:center; font-size:28rpx; color:#bbb; background:#f5f5f5; border-radius:50%; }
+.report-header { text-align:center; margin-bottom:30rpx; }
+.report-year { display:block; font-size:72rpx; font-weight:900; color:#ff6b8a; line-height:1; margin-bottom:6rpx; }
+.report-title { font-size:28rpx; color:#888; font-weight:600; }
+.report-body { display:flex; flex-direction:column; align-items:center; gap:22rpx; }
+.report-stat-card { width:260rpx; padding:28rpx; background:rgba(255,255,255,0.9); border-radius:22rpx; box-shadow:0 3rpx 18rpx rgba(255,150,170,0.08); display:flex; flex-direction:column; align-items:center; }
+.rsc-emoji { font-size:42rpx; margin-bottom:8rpx; }
+.rsc-num { font-size:50rpx; font-weight:900; color:#ff6b8a; line-height:1.1; }
+.rsc-label { font-size:22rpx; color:#999; margin-top:4rpx; }
+.report-rate { width:100%; display:flex; flex-direction:column; align-items:center; gap:8rpx; }
+.report-rate-bar { width:75%; height:14rpx; background:#f0f0f0; border-radius:999rpx; overflow:hidden; }
+.report-rate-fill { height:100%; background:linear-gradient(90deg,#ff9eb5,#ff6b8a); border-radius:999rpx; }
+.report-rate-text { font-size:26rpx; font-weight:700; color:#ff6b8a; }
+.report-footer { margin-top:28rpx; text-align:center; font-size:20rpx; color:#bbb; }
+
+/* ==================== 日期详情弹窗 ==================== */
+.day-detail-sheet {
+  position: fixed; left:0; right:0; bottom: -100%;
+  max-height: 80vh; background: #fff; border-radius: 36rpx 36rpx 0 0;
+  z-index: 201; padding: 32rpx 28rpx 36rpx;
+  padding-bottom: calc(36rpx + env(safety-area-inset-bottom));
+  transition: bottom 0.3s ease; overflow-y: auto;
+}
+.day-detail-sheet.show { bottom: 0; }
+
+.day-detail-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 20rpx; border-bottom: 1rpx solid #f0f0f0; margin-bottom: 20rpx;
+}
+.day-detail-date { font-size: 32rpx; font-weight: 700; color: #444; }
+.day-detail-close {
+  width: 52rpx; height: 52rpx; display: flex; align-items: center; justify-content: center;
+  background: #f5f5f5; border-radius: 50%; font-size: 26rpx; color: #999;
+}
+
+.day-detail-body { margin-bottom: 20rpx; }
+.day-detail-label { font-size: 23rpx; font-weight: 600; color: #999; margin-bottom: 14rpx; }
+
+.day-record-item {
+  background: #fafafa; border-radius: 20rpx; padding: 22rpx 20rpx; margin-bottom: 14rpx;
+  border: 1rpx solid #f0f0f0;
+}
+.day-record-item:last-child { margin-bottom: 0; }
+
+.day-record-author { display: flex; align-items: center; margin-bottom: 12rpx; }
+.day-record-avatar-emoji { font-size: 36rpx; margin-right: 10rpx; }
+.day-record-name { font-size: 28rpx; font-weight: 600; color: #444; }
+.day-record-tag {
+  font-size: 18rpx; padding: 2rpx 10rpx; background: linear-gradient(135deg, #ff6b8a, #ff9eb5);
+  color: #fff; border-radius: 999rpx; margin-left: 10rpx;
+}
+
+.day-record-info { display: flex; flex-wrap: wrap; gap: 10rpx; }
+.day-record-status {
+  font-size: 24rpx; font-weight: 600; color: #ff6b8a;
+  padding: 6rpx 14rpx; background: rgba(255,107,138,0.06); border-radius: 999rpx;
+}
+.day-record-emotion {
+  font-size: 22rpx; color: #888; padding: 6rpx 14rpx;
+  background: #f5f5f5; border-radius: 999rpx;
+}
+.day-record-place { font-size: 22rpx; color: #888; }
+.day-record-note {
+  width: 100%; font-size: 24rpx; color: #666; margin-top: 6rpx;
+  line-height: 1.5; word-break: break-all;
+}
+
+.day-record-photo {
+  width: 120rpx; height: 120rpx; border-radius: 14rpx; margin-top: 12rpx;
+  border: 1rpx solid #f0f0f0;
+}
+
+.day-detail-empty {
+  text-align: center; padding: 40rpx 0; font-size: 26rpx; color: #bbb;
+}
+
+.day-detail-footer { border-top: 1rpx solid #f0f0f0; padding-top: 18rpx; }
+.day-detail-tip {
+  text-align: center; margin-bottom: 16rpx; font-size: 22rpx; color: #ff6b8a;
+  padding: 10rpx 16rpx; background: rgba(255,107,138,0.05); border-radius: 999rpx;
+}
+
+.day-detail-btns { display: flex; gap: 14rpx; }
+.dbtn-cancel, .dbtn-sign { flex: 1; height: 76rpx; border-radius: 999rpx; font-size: 26rpx; font-weight: 600; display: flex; align-items: center; justify-content: center; border: none; }
+.dbtn-cancel { background: #f0f0f0; color: #666; }
+.dbtn-sign { background: linear-gradient(135deg, #ff9eb5, #ff6b8a); color: #fff; box-shadow: 0 4rpx 14rpx rgba(255,107,138,0.3); }
+
+/* ==================== 统计天数修改弹窗 ==================== */
+.stat-editor-sheet {
+  position: fixed; left: 0; right: 0; bottom: -100%;
+  background: #fff; border-radius: 36rpx 36rpx 0 0;
+  z-index: 201; padding: 36rpx 28rpx 44rpx;
+  padding-bottom: calc(44rpx + env(safety-area-inset-bottom));
+  transition: bottom 0.3s ease;
+}
+.stat-editor-sheet.show { bottom: 0; }
+
+.stat-editor-title {
+  font-size: 30rpx; font-weight: 700; text-align: center;
+  color: #333; margin-bottom: 28rpx;
+}
+
+.stat-editor-body {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 16rpx; margin-bottom: 28rpx;
+}
+
+.stat-editor-info {
+  display: flex; align-items: center; gap: 16rpx;
+  padding: 16rpx 28rpx; background: #f8f8f8;
+  border-radius: 16rpx; width: 100%; box-sizing: border-box;
+}
+.stat-editor-label { font-size: 24rpx; color: #999; }
+.stat-editor-base {
+  font-size: 28rpx; font-weight: 700; color: #ff6b8a;
+}
+
+.stat-editor-hint {
+  font-size: 22rpx; color: #ff9800; text-align: center;
+  padding: 10rpx 20rpx; background: rgba(255,152,0,0.06);
+  border-radius: 999rpx; width: fit-content;
+}
+
+.stat-editor-input-wrap {
+  display: flex; align-items: center; gap: 12rpx;
+  padding: 8rpx 0; width: 100%; justify-content: center;
+}
+.stat-editor-input-label {
+  font-size: 28rpx; font-weight: 600; color: #666;
+}
+.stat-editor-input {
+  width: 200rpx; height: 80rpx; background: #f8f8f8;
+  border-radius: 18rpx; text-align: center;
+  font-size: 36rpx; font-weight: 900; color: #ff6b8a;
+  border: 2rpx solid transparent;
+}
+.stat-editor-input:focus {
+  border-color: #ff6b8a; background: rgba(255,107,138,0.04);
+}

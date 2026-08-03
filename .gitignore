@@ -1,0 +1,32 @@
+.DS_Store
+node_modules/
+**/node_modules/
+cloudfunctions/**/node_modules/
+
+.idea/
+.claude/
+.planning/
+
+# Local collaboration notes
+AGENTS.md
+PROJECT_ANALYSIS.md
+findings.md
+progress.md
+task_plan.md
+docs/superpowers/
+
+# Local configuration and secrets
+project.private.config.json
+.env
+.env.*
+!.env.example
+credentials.json
+secrets.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Generated reports and logs
+*.log
+coverage/

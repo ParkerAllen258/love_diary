@@ -1,0 +1,61 @@
+/**app.wxss**/
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 200rpx 0;
+  box-sizing: border-box;
+}
+
+/* ==================== 全局动画 ==================== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6rpx); }
+}
+
+/* 全局过渡 */
+page {
+  animation: fadeIn 0.35s ease;
+}
+
+/* 通用毛玻璃卡片 */
+.glass-card {
+  background: rgba(255,255,255,0.68);
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 18rpx rgba(255,150,170,0.06);
+  border: 1rpx solid rgba(255,255,255,0.45);
+}
+
+/* 按钮悬浮动画 */
+.btn-float {
+  animation: floatUp 3s ease-in-out infinite;
+}
+
+/* 卡片点击反馈 */
+.tap-active {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.tap-active:active {
+  transform: scale(0.97);
+  box-shadow: 0 1rpx 8rpx rgba(255,150,170,0.04);
+}

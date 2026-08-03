@@ -1,0 +1,65 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/mine/mine",
+    "pages/companion/companion",
+    "pages/anniversary/anniversary",
+    "pages/money/money",
+    "pages/schedule/schedule",
+    "pages/course/course",
+    "pages/note/note",
+    "pages/goals/goals",
+    "pages/cost/cost",
+    "pages/sprite/sprite",
+    "pages/album/album",
+    "pages/moment/moment",
+    "pages/diary/diary",
+    "pages/letter/letter"
+  ],
+  "window": {
+    "navigationBarTitleText": "Love Diary",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+
+    "list": [
+  
+      {
+  
+        "pagePath": "pages/index/index",
+  
+        "text": "Home"
+  
+      },
+  
+      {
+  
+        "pagePath": "pages/moment/moment",
+  
+        "text": "Pyq"
+  
+      },
+  
+      {
+  
+        "pagePath": "pages/companion/companion",
+  
+        "text": "陪伴"
+  
+      },
+  
+      {
+  
+        "pagePath": "pages/mine/mine",
+  
+        "text": "My"
+  
+      }
+  
+    ]
+  
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

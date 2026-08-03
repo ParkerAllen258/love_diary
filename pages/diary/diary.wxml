@@ -1,0 +1,61 @@
+<view class="container">
+
+<view class="title">📖 恋爱日记</view>
+
+<view class="card">
+
+  <textarea
+    class="textarea"
+    placeholder="记录今天的心情..."
+    value="{{content}}"
+    bindinput="onContentInput"
+    maxlength="2000"
+  ></textarea>
+
+  <view class="image-row" wx:if="{{imageUrl}}">
+    <image class="preview" src="{{imageUrl}}" mode="aspectFill" bindtap="previewImage" data-url="{{imageUrl}}"></image>
+    <view class="remove-img" bindtap="removeImage">移除图片</view>
+  </view>
+
+  <view class="btn-row">
+    <button class="btn-secondary" bindtap="chooseImage">添加图片</button>
+    <button class="btn" bindtap="publish">发布日记</button>
+  </view>
+
+</view>
+
+<view class="list">
+
+  <view class="item" wx:for="{{list}}" wx:key="_id">
+
+    <view class="left">
+
+      <view class="item-meta">{{item.isMine ? '我' : 'Ta'}} · {{item.time}}</view>
+
+      <view class="item-content" wx:if="{{item.content}}">{{item.content}}</view>
+
+      <image
+        wx:if="{{item.imageUrl}}"
+        class="item-image"
+        src="{{item.imageUrl}}"
+        mode="widthFix"
+        bindtap="previewImage"
+        data-url="{{item.imageUrl}}"
+      ></image>
+
+    </view>
+
+    <view
+      wx:if="{{item.isMine}}"
+      class="delete"
+      data-id="{{item._id}}"
+      bindtap="deleteItem"
+    >删除</view>
+
+  </view>
+
+  <view wx:if="{{list.length === 0}}" class="empty">还没有日记，写下第一条吧 ✨</view>
+
+</view>
+
+</view>

@@ -1,0 +1,249 @@
+page {
+  background: #f2f3f5;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 24rpx 28rpx 60rpx;
+  box-sizing: border-box;
+}
+
+.header {
+  padding: 20rpx 8rpx 36rpx;
+}
+
+.greeting {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  margin-top: 24rpx;
+}
+
+.avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  border: 4rpx solid #fff;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+}
+
+.user-name {
+  margin-left: 20rpx;
+  font-size: 30rpx;
+  color: #636e72;
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 28rpx;
+  padding: 28rpx 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.06);
+}
+
+.card:active {
+  transform: scale(0.99);
+  opacity: 0.96;
+}
+
+.card-icon {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 24rpx;
+}
+
+.card-emoji {
+  font-size: 56rpx;
+  line-height: 1;
+}
+
+.card-body {
+  flex: 1;
+  margin-left: 24rpx;
+  min-width: 0;
+}
+
+.card-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2d3436;
+}
+
+.card-subtitle {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #b2bec3;
+}
+
+.card-date {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #636e72;
+}
+
+.card-status {
+  flex-shrink: 0;
+  max-width: 200rpx;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.status-icon {
+  font-size: 32rpx;
+}
+
+.status-text {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.status-together .status-text,
+.status-past .status-text,
+.status-today .status-text {
+  color: #e17055;
+}
+
+.status-together .status-icon {
+  color: #ff6b8a;
+}
+
+.status-future .status-text {
+  color: #d63031;
+}
+
+.status-empty .status-text {
+  color: #b2bec3;
+}
+
+.tip {
+  margin-top: 40rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #b2bec3;
+}
+
+.mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+}
+
+.editor {
+  position: fixed;
+  left: 40rpx;
+  right: 40rpx;
+  bottom: 80rpx;
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 40rpx;
+  z-index: 101;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.15);
+}
+
+.editor-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #2d3436;
+  text-align: center;
+}
+
+.calendar-switch {
+  display: flex;
+  margin-top: 28rpx;
+  background: #f0f1f5;
+  border-radius: 999rpx;
+  padding: 6rpx;
+}
+
+.switch-item {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  font-size: 28rpx;
+  color: #636e72;
+  border-radius: 999rpx;
+}
+
+.switch-item.active {
+  background: #fff;
+  color: #ff4d6d;
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(255, 77, 109, 0.15);
+}
+
+.editor-date {
+  margin-top: 32rpx;
+  height: 96rpx;
+  background: #f5f6fa;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: #2d3436;
+}
+
+.lunar-picker {
+  font-size: 30rpx;
+}
+
+.editor-preview {
+  margin-top: 16rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #b2bec3;
+}
+
+.editor-btns {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 32rpx;
+}
+
+.btn-cancel,
+.btn-save {
+  flex: 1;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+}
+
+.btn-cancel {
+  background: #f0f0f0;
+  color: #636e72;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #ff7eb3, #ff4d6d);
+  color: #fff;
+}

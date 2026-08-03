@@ -1,0 +1,96 @@
+<view class="page">
+
+  <!-- 顶部 -->
+  <view class="header">
+    <view class="header-left">
+      <view class="greeting">{{greeting}} 💕</view>
+      <view class="user-row">
+        <image class="avatar" src="{{myAvatar || defaultAvatar}}" mode="aspectFill"></image>
+        <view class="user-name">{{myName}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 纪念日卡片列表 -->
+  <view class="card-list">
+
+    <view
+      class="card"
+      wx:for="{{milestones}}"
+      wx:key="key"
+      data-key="{{item.key}}"
+      bindtap="onCardTap"
+    >
+
+      <view class="card-icon" style="background: {{item.iconBg}}">
+        <image wx:if="{{item.image}}" class="card-image" src="{{item.image}}" mode="aspectFill"></image>
+        <text wx:else class="card-emoji">{{item.emoji}}</text>
+      </view>
+
+      <view class="card-body">
+        <view class="card-title">{{item.title}}</view>
+        <view class="card-subtitle">{{item.subtitle}}</view>
+        <view class="card-date">{{item.dateText}}</view>
+      </view>
+
+      <view class="card-status status-{{item.statusType}}">
+        <text class="status-icon">{{item.statusIcon}}</text>
+        <text class="status-text">{{item.statusText}}</text>
+      </view>
+
+    </view>
+
+  </view>
+
+  <view class="tip">点击卡片可设置或修改日期</view>
+
+</view>
+
+<!-- 日期编辑弹层 -->
+<view class="mask" wx:if="{{editingKey}}" bindtap="closeEditor"></view>
+
+<view class="editor" wx:if="{{editingKey}}">
+
+  <view class="editor-title">设置日期</view>
+
+  <view class="calendar-switch" wx:if="{{editingKey !== 'together'}}">
+    <view
+      class="switch-item {{editingCalendar === 'solar' ? 'active' : ''}}"
+      data-type="solar"
+      bindtap="onCalendarSwitch"
+    >阳历</view>
+    <view
+      class="switch-item {{editingCalendar === 'lunar' ? 'active' : ''}}"
+      data-type="lunar"
+      bindtap="onCalendarSwitch"
+    >农历</view>
+  </view>
+
+  <picker
+    wx:if="{{editingCalendar === 'solar'}}"
+    mode="date"
+    value="{{editingDate}}"
+    bindchange="onSolarDateChange"
+  >
+    <view class="editor-date">{{editingDate || '请选择阳历日期'}}</view>
+  </picker>
+
+  <picker
+    wx:else
+    mode="multiSelector"
+    range="{{lunarPickerRange}}"
+    value="{{lunarPickerValue}}"
+    bindchange="onLunarPickerChange"
+    bindcolumnchange="onLunarPickerColumnChange"
+  >
+    <view class="editor-date lunar-picker">{{editorPreview || '请选择农历日期'}}</view>
+  </picker>
+
+  <view class="editor-preview" wx:if="{{editorPreview}}">{{editorPreview}}</view>
+
+  <view class="editor-btns">
+    <button class="btn-cancel" bindtap="closeEditor">取消</button>
+    <button class="btn-save" bindtap="saveDate">保存</button>
+  </view>
+
+</view>

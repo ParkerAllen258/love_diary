@@ -1,0 +1,490 @@
+<view class="page">
+
+  <!-- ==================== 未绑定 ==================== -->
+  <view wx:if="{{!hasCouple}}" class="unbound-card">
+    <view class="unbound-emoji">💕</view>
+    <view class="unbound-title">还没绑定情侣哦</view>
+    <view class="unbound-desc">绑定后即可记录你们的陪伴时光</view>
+  </view>
+
+  <block wx:else>
+
+  <!-- ==================== 顶部头像 + 恋爱天数 ==================== -->
+  <view class="top-hero">
+    <view class="hero-avatar left">
+      <image class="hero-avatar-img" src="{{boyAvatar || defaultAvatar}}" mode="aspectFill" />
+      <text class="hero-name">{{boyName}}</text>
+    </view>
+
+    <view class="hero-center" bindtap="openDatePicker">
+      <!-- 签到爱心 -->
+      <view class="hero-heart-wrap">
+        <view class="hero-heart {{heartClass}}">
+          <text class="h-left">❤️</text>
+          <text class="h-right">❤️</text>
+        </view>
+        <text class="hero-tip">{{heartTip}}</text>
+      </view>
+      <!-- 恋爱天数 -->
+      <view class="hero-days">
+        <text class="hero-days-prefix">在一起</text>
+        <text wx:if="{{loveDateSet}}" class="hero-days-num">{{loveDays}}</text>
+        <text wx:else class="hero-days-num">--</text>
+        <text class="hero-days-label">天</text>
+      </view>
+      <text wx:if="{{!loveDateSet}}" class="hero-set-hint">点击设置在一起日期</text>
+      <text wx:else class="hero-set-date">{{loveDate}} 开始 · 点击修改</text>
+    </view>
+
+    <view class="hero-avatar right">
+      <image class="hero-avatar-img" src="{{girlAvatar || defaultAvatar}}" mode="aspectFill" />
+      <text class="hero-name">{{girlName}}</text>
+    </view>
+  </view>
+
+  <!-- ==================== 今日状态条 ==================== -->
+  <view class="today-bar">
+    <view class="today-left">
+      <text class="today-emoji">{{todayEmoji}}</text>
+      <text class="today-text">{{todayStatusText}}</text>
+    </view>
+    <view class="today-btn" bindtap="openCheckin">
+      <text>{{todayMySigned ? '✏️ 重新记录' : '📝 记录今天'}}</text>
+    </view>
+  </view>
+
+  <!-- ==================== 三栏统计 ==================== -->
+  <view class="stats-row">
+    <view class="stat-card stat-card-edit" data-type="together" bindtap="onStatTap">
+      <view class="stat-num pink">{{stats.togetherDays}}</view>
+      <view class="stat-label">见面天数 <text class="stat-edit-icon">✎</text></view>
+    </view>
+    <view class="stat-card stat-card-edit" data-type="apart" bindtap="onStatTap">
+      <view class="stat-num gray">{{stats.apartDays}}</view>
+      <view class="stat-label">异地天数 <text class="stat-edit-icon">✎</text></view>
+    </view>
+    <view class="stat-card">
+      <view class="stat-num pink">{{stats.togetherRate}}%</view>
+      <view class="stat-label">见面率</view>
+    </view>
+  </view>
+
+  <!-- ==================== 纪录之最 ==================== -->
+  <view class="records-highlight" wx:if="{{stats.longestTogether > 0 || stats.longestApart > 0}}">
+    <view class="highlight-item" wx:if="{{stats.longestTogether > 0}}">
+      <text class="highlight-icon">🏆</text>
+      <text class="highlight-text">最长连续见面 <text class="highlight-num">{{stats.longestTogether}}</text> 天</text>
+    </view>
+    <view class="highlight-item" wx:if="{{stats.longestApart > 0}}">
+      <text class="highlight-icon">⏰</text>
+      <text class="highlight-text">最长异地 <text class="highlight-num">{{stats.longestApart}}</text> 天</text>
+    </view>
+  </view>
+
+  <!-- ==================== 共同种树 ==================== -->
+  <view class="tree-card" id="treeCard">
+    <block wx:if="{{tree.exists}}">
+    <view class="tree-header">
+      <view class="tree-header-left">
+        <text class="tree-title-icon">🌳</text>
+        <text class="tree-title">共同种树</text>
+      </view>
+      <view class="tree-streak" wx:if="{{tree.streak > 0}}">
+        <text class="streak-icon">🔥</text>
+        <text class="streak-num">{{tree.streak}}</text>
+        <text class="streak-label">天连续</text>
+      </view>
+    </view>
+
+    <!-- 树的可视化区域 -->
+    <view class="tree-visual stage-{{tree.stage}}">
+      <!-- 背景装饰 -->
+      <view class="tree-bg-deco">
+        <view class="tree-cloud cloud-left"></view>
+        <view class="tree-cloud cloud-right"></view>
+      </view>
+
+      <!-- 大树emoji -->
+      <view class="tree-emoji-wrap">
+        <text class="tree-main-emoji">{{tree.stageEmoji}}</text>
+        <!-- 特效粒子 -->
+        <view class="tree-sparkles" wx:if="{{tree.stage >= 4}}">
+          <text class="sparkle s1">✨</text>
+          <text class="sparkle s2">💫</text>
+          <text class="sparkle s3">✨</text>
+        </view>
+      </view>
+
+      <!-- 花盆 -->
+      <view class="tree-pot">
+        <view class="pot-body"></view>
+        <view class="pot-rim"></view>
+      </view>
+    </view>
+
+    <!-- 阶段信息 -->
+    <view class="tree-info">
+      <text class="tree-stage-name">{{tree.stageName}}</text>
+      <text class="tree-stage-desc">{{tree.stageDesc}}</text>
+    </view>
+
+    <!-- 成长进度条 -->
+    <view class="tree-progress-wrap">
+      <view class="tree-progress-bar">
+        <view class="tree-progress-fill" style="width: {{tree.growthPercent}}%;"></view>
+      </view>
+      <text class="tree-progress-text">{{tree.growthPercent}}%</text>
+      <text class="tree-next-hint">→ 下一阶段</text>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="tree-actions">
+      <view class="tree-action-btn water {{tree.wateredByMe ? 'done' : ''}}" bindtap="waterTree">
+        <text>{{tree.wateredByMe ? '✅ 已浇水' : '💧 浇水 +5'}}</text>
+      </view>
+      <view class="tree-action-tip">
+        <text wx:if="{{tree.streak > 0 && tree.streak % 7 === 0}}">🎁 连续{{tree.streak}}天！额外奖励已触发</text>
+        <text wx:else>双方签到+15 · 每人可浇水+5</text>
+      </view>
+    </view>
+    </block>
+
+    <!-- 初始状态：树还不存在 -->
+    <block wx:else>
+      <view class="tree-init">
+        <text class="tree-init-emoji">🌰</text>
+        <text class="tree-init-title">种下一棵爱情树</text>
+        <text class="tree-init-desc">双方每天签到即可浇灌属于你们的树，从种子到果实，见证感情成长 🌱</text>
+        <view class="tree-init-hint">⚠️ 请先在云开发控制台创建 couple_tree 集合并设置权限</view>
+      </view>
+    </block>
+  </view>
+
+  <!-- ==================== 月度热力图 ==================== -->
+  <view class="section-card">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="title-icon">🗓️</text>
+        <text>陪伴热力图</text>
+      </view>
+      <view class="month-switch">
+        <view class="month-arrow" bindtap="prevMonthQuick">‹</view>
+        <view class="month-center" bindtap="openMonthPicker">
+          <text class="month-text">{{currentYear}}年 {{monthLabel}}</text>
+          <text class="month-drop">▾</text>
+        </view>
+        <view class="month-arrow" bindtap="nextMonthQuick">›</view>
+      </view>
+    </view>
+
+    <!-- 图例 -->
+    <view class="heatmap-legend">
+      <view class="legend-item"><view class="legend-dot together"></view><text>见面</text></view>
+      <view class="legend-item"><view class="legend-dot half"></view><text>待对方</text></view>
+      <view class="legend-item"><view class="legend-dot apart"></view><text>异地</text></view>
+    </view>
+
+    <!-- 周标签 -->
+    <view class="hm-week-row">
+      <text class="hm-wd" wx:for="{{weekLabels}}" wx:key="*this">{{item}}</text>
+    </view>
+
+    <!-- 日期格子 -->
+    <view class="hm-grid">
+      <view
+        class="hm-cell {{item.empty ? 'empty' : ''}} {{item.isFuture ? 'future' : ''}} {{item.isToday ? 'today' : ''}} {{!item.empty && !item.isFuture ? 'type-' + item.cellType : ''}}"
+        wx:for="{{monthCells}}"
+        wx:key="dateStr"
+        wx:for-item="item"
+        data-date="{{item.dateStr}}"
+        data-day="{{item.day}}"
+        bindtap="onDayTap"
+      >
+        <text wx:if="{{!item.empty && !item.isFuture}}" class="hm-num">{{item.day}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 情侣互动游戏 ==================== -->
+  <view class="section-card">
+    <view class="section-header">
+      <view class="section-title"><text class="title-icon">🎮</text><text>情侣互动</text></view>
+    </view>
+    <scroll-view class="game-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="game-item {{item.active ? 'game-active-item' : ''}} {{item.coming ? 'game-coming-item' : ''}}"
+        wx:for="{{gameModules}}" wx:key="key"
+        data-key="{{item.key}}"
+        bindtap="onGameTap">
+        <view class="game-emoji">{{item.emoji}}</view>
+        <view class="game-title">{{item.title}}</view>
+        <view class="game-desc">{{item.desc}}</view>
+        <view class="game-tag tag-coming" wx:if="{{item.coming}}">敬请期待</view>
+        <view class="game-tag tag-active" wx:elif="{{item.active}}">进入 ›</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- ==================== 年度陪伴报告入口 ==================== -->
+  <view class="annual-entry" bindtap="openAnnualReport">
+    <view class="annual-bg">
+      <view class="annual-content">
+        <view class="annual-icon">📊</view>
+        <view class="annual-text">
+          <view class="annual-title">2026年度陪伴报告</view>
+          <view class="annual-sub">查看你们这一年的陪伴足迹</view>
+        </view>
+        <view class="annual-arrow">›</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-space"></view>
+  </block>
+</view>
+
+<!-- ==================== 恋爱日期选择器弹窗 ==================== -->
+<view class="mask" wx:if="{{showDatePicker}}" bindtap="closeDatePicker"></view>
+<view class="picker-sheet {{showDatePicker ? 'show' : ''}}">
+  <view class="picker-title">💕 选择你们在一起的日期</view>
+  <view class="picker-row">
+    <view class="picker-col">
+      <text class="picker-label">年</text>
+      <picker mode="selector" range="{{yearRange}}" value="{{pickerYear - 2020}}" bindchange="onYearChange">
+        <view class="picker-value">{{pickerYear}}</view>
+      </picker>
+    </view>
+    <view class="picker-col">
+      <text class="picker-label">月</text>
+      <picker mode="selector" range="{{monthRange}}" value="{{pickerMonth - 1}}" bindchange="onMonthChange">
+        <view class="picker-value">{{pickerMonth}}月</view>
+      </picker>
+    </view>
+    <view class="picker-col">
+      <text class="picker-label">日</text>
+      <picker mode="selector" range="{{dayRange}}" value="{{pickerDay - 1}}" bindchange="onDayChange">
+        <view class="picker-value">{{pickerDay}}日</view>
+      </picker>
+    </view>
+  </view>
+  <view class="picker-btns">
+    <button class="btn-cancel" bindtap="closeDatePicker">取消</button>
+    <button class="btn-save" bindtap="saveLoveDate">确认设置</button>
+  </view>
+</view>
+
+<!-- ==================== 年月选择器弹窗 ==================== -->
+<view class="mask" wx:if="{{showMonthPicker}}" bindtap="closeMonthPicker"></view>
+<view class="picker-sheet {{showMonthPicker ? 'show' : ''}}">
+  <view class="picker-title">选择查看月份</view>
+  <view class="mp-year-row">
+    <view class="mp-yr-btn" bindtap="mpPrevYear">‹</view>
+    <text class="mp-yr-text">{{monthPickerYear}}年</text>
+    <view class="mp-yr-btn" bindtap="mpNextYear">›</view>
+  </view>
+  <view class="mp-month-grid">
+    <view
+      class="mp-month-item {{monthPickerYear === currentYear && item === currentMonth ? 'active' : ''}}"
+      wx:for="{{monthPickerOptions}}"
+      wx:key="*this"
+      wx:for-item="item"
+      data-month="{{item}}"
+      bindtap="selectMonth"
+    >
+      <text>{{item + 1}}月</text>
+    </view>
+  </view>
+  <view class="picker-btns">
+    <button class="btn-cancel" bindtap="closeMonthPicker">关闭</button>
+  </view>
+</view>
+
+<!-- ==================== 签到弹窗 ==================== -->
+<view class="mask" wx:if="{{showForm}}" bindtap="closeForm"></view>
+<view class="checkin-sheet {{showForm ? 'show' : ''}}">
+  <view class="sheet-title">记录今天的陪伴 💕</view>
+
+  <view class="sheet-section">
+    <view class="sheet-label">陪伴状态</view>
+    <view class="status-grid">
+      <view class="status-item {{selectedStatus === item.key ? 'active' : ''}}" wx:for="{{statusConfig}}" wx:key="key" data-key="{{item.key}}" bindtap="pickStatus">
+        <text class="si-emoji">{{item.emoji}}</text>
+        <text class="si-label">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="sheet-section">
+    <view class="sheet-label">今日心情</view>
+    <view class="emotion-row">
+      <view class="emotion-item {{selectedEmotion === item.key ? 'active' : ''}}" wx:for="{{emotionConfig}}" wx:key="key" data-key="{{item.key}}" bindtap="pickEmotion">
+        <text class="ei-emoji">{{item.emoji}}</text>
+        <text class="ei-label">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="sheet-section">
+    <view class="sheet-label">见面地点</view>
+    <input class="sheet-input" placeholder="如：XX咖啡厅 / 在家" value="{{checkinPlace}}" bindinput="onPlaceInput" maxlength="50" />
+  </view>
+
+  <view class="sheet-section">
+    <view class="sheet-label">照片记录</view>
+    <view class="photo-area">
+      <view wx:if="{{!checkinPhoto}}" class="photo-add-btn" bindtap="choosePhoto"><text>📷 添加照片</text></view>
+      <view wx:else class="photo-preview" bindtap="previewCheckinPhoto">
+        <image class="photo-img" src="{{checkinPhoto}}" mode="aspectFill" />
+        <view class="photo-remove" catchtap="removePhoto">✕</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="sheet-section">
+    <view class="sheet-label">想说的话</view>
+    <textarea class="sheet-textarea" placeholder="记录一下今天的心情..." value="{{checkinNote}}" bindinput="onNoteInput" maxlength="200" auto-height />
+  </view>
+
+  <view class="sheet-btns">
+    <button class="btn-cancel" bindtap="closeForm">取消</button>
+    <button class="btn-save" bindtap="saveCheckin">保存签到 ✨</button>
+  </view>
+</view>
+
+<!-- ==================== 年度报告弹窗 ==================== -->
+<view class="mask" wx:if="{{showAnnualReport}}" bindtap="closeAnnualReport"></view>
+<view class="annual-report {{showAnnualReport ? 'show' : ''}}">
+  <view class="report-close" bindtap="closeAnnualReport">✕</view>
+  <view class="report-header">
+    <text class="report-year">{{currentYear}}</text>
+    <text class="report-title">年度陪伴报告</text>
+  </view>
+  <view class="report-body">
+    <view class="report-stat-card"><view class="rsc-emoji">🏠</view><view class="rsc-num">{{annualData.togetherDays}}</view><view class="rsc-label">天在一起</view></view>
+    <view class="report-stat-card"><view class="rsc-emoji">💔</view><view class="rsc-num">{{annualData.apartDays}}</view><view class="rsc-label">天异地</view></view>
+    <view class="report-rate">
+      <view class="report-rate-bar"><view class="report-rate-fill" style="{{annualData.rateStyle}}"></view></view>
+      <text class="report-rate-text">见面率 {{annualData.togetherRate || 0}}%</text>
+    </view>
+  </view>
+  <view class="report-footer"><text>💕 Love Diary 为你记录每一份陪伴</text></view>
+</view>
+
+<!-- ==================== 日期详情弹窗 ==================== -->
+<view class="mask" wx:if="{{showDayDetail}}" bindtap="closeDayDetail"></view>
+<view class="day-detail-sheet {{showDayDetail ? 'show' : ''}}">
+  <view class="day-detail-header">
+    <text class="day-detail-date">📅 {{dayDetailDate}}</text>
+    <view class="day-detail-close" bindtap="closeDayDetail">✕</view>
+  </view>
+
+  <view class="day-detail-body">
+    <view class="day-detail-label">当天记录</view>
+
+    <block wx:if="{{dayDetailRecords.length > 0}}">
+      <view class="day-record-item" wx:for="{{dayDetailRecords}}" wx:key="_id">
+        <view class="day-record-author">
+          <text class="day-record-avatar-emoji">{{item.authorCode === myCode ? '😊' : '😍'}}</text>
+          <text class="day-record-name">{{item.authorName || 'TA'}}</text>
+          <text class="day-record-tag" wx:if="{{item.authorCode === myCode}}">我</text>
+        </view>
+        <view class="day-record-info">
+          <text class="day-record-status">{{item.statusLabel}}</text>
+          <text class="day-record-emotion" wx:if="{{item.emotion}}">{{item.emotionLabel}} {{item.emotionEmoji}}</text>
+          <text class="day-record-place" wx:if="{{item.place}}">📍 {{item.place}}</text>
+          <text class="day-record-note" wx:if="{{item.note}}">💬 {{item.note}}</text>
+        </view>
+        <image wx:if="{{item.photo}}" class="day-record-photo" src="{{item.photo}}" mode="aspectFill" bindtap="previewDayPhoto" data-url="{{item.photo}}"></image>
+      </view>
+    </block>
+
+    <view class="day-detail-empty" wx:if="{{dayDetailRecords.length === 0}}">
+      <text>还没有签到记录</text>
+    </view>
+  </view>
+
+  <view class="day-detail-footer">
+    <view class="day-detail-tip" wx:if="{{canRetroSign}}">
+      <text>💡 {{retroSignTip}}</text>
+    </view>
+    <view class="day-detail-btns">
+      <button class="dbtn-cancel" bindtap="closeDayDetail">关闭</button>
+      <button class="dbtn-sign" wx:if="{{canRetroSign}}" bindtap="retroSign">📝 补签</button>
+    </view>
+  </view>
+</view>
+
+<!-- ==================== 补签弹窗 ==================== -->
+<view class="mask" wx:if="{{showRetroForm}}" bindtap="closeRetroForm"></view>
+<view class="checkin-sheet {{showRetroForm ? 'show' : ''}}">
+  <view class="sheet-title">补签 {{retroDate}} 💕</view>
+
+  <view class="sheet-section">
+    <view class="sheet-label">陪伴状态</view>
+    <view class="status-grid">
+      <view class="status-item {{retroStatus === item.key ? 'active' : ''}}" wx:for="{{statusConfig}}" wx:key="key" data-key="{{item.key}}" bindtap="pickRetroStatus">
+        <text class="si-emoji">{{item.emoji}}</text>
+        <text class="si-label">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="sheet-section">
+    <view class="sheet-label">今日心情</view>
+    <view class="emotion-row">
+      <view class="emotion-item {{retroEmotion === item.key ? 'active' : ''}}" wx:for="{{emotionConfig}}" wx:key="key" data-key="{{item.key}}" bindtap="pickRetroEmotion">
+        <text class="ei-emoji">{{item.emoji}}</text>
+        <text class="ei-label">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="sheet-section">
+    <view class="sheet-label">见面地点</view>
+    <input class="sheet-input" placeholder="如：XX咖啡厅 / 在家" value="{{retroPlace}}" bindinput="onRetroPlaceInput" maxlength="50" />
+  </view>
+
+  <view class="sheet-section">
+    <view class="sheet-label">照片记录</view>
+    <view class="photo-area">
+      <view wx:if="{{!retroPhoto}}" class="photo-add-btn" bindtap="chooseRetroPhoto"><text>📷 添加照片</text></view>
+      <view wx:else class="photo-preview" bindtap="previewRetroPhoto">
+        <image class="photo-img" src="{{retroPhoto}}" mode="aspectFill" />
+        <view class="photo-remove" catchtap="removeRetroPhoto">✕</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="sheet-section">
+    <view class="sheet-label">想说的话</view>
+    <textarea class="sheet-textarea" placeholder="补签时想说的话..." value="{{retroNote}}" bindinput="onRetroNoteInput" maxlength="200" auto-height />
+  </view>
+
+  <view class="sheet-btns">
+    <button class="btn-cancel" bindtap="closeRetroForm">取消</button>
+    <button class="btn-save" bindtap="saveRetroSign">确认补签 ✨</button>
+  </view>
+</view>
+
+<!-- ==================== 统计天数修改弹窗 ==================== -->
+<view class="mask" wx:if="{{showStatEditor}}" bindtap="closeStatEditor"></view>
+<view class="stat-editor-sheet {{showStatEditor ? 'show' : ''}}">
+  <view class="stat-editor-title">
+    ✏️ {{editingStat === 'together' ? '修改见面天数' : '修改异地天数'}}
+  </view>
+  <view class="stat-editor-body">
+    <view class="stat-editor-info">
+      <text class="stat-editor-label">从记录中统计</text>
+      <text class="stat-editor-base">{{editStatBase}} 天</text>
+    </view>
+    <view class="stat-editor-hint">💡 修改后将在此基础之上继续累加</view>
+    <view class="stat-editor-input-wrap">
+      <text class="stat-editor-input-label">设为</text>
+      <input class="stat-editor-input" type="number" value="{{editStatValue}}" bindinput="onStatValueInput" placeholder="输入天数" />
+      <text class="stat-editor-input-label">天</text>
+    </view>
+  </view>
+  <view class="picker-btns">
+    <button class="btn-cancel" bindtap="closeStatEditor">取消</button>
+    <button class="btn-save" bindtap="saveStatValue">确认修改 ✨</button>
+  </view>
+</view>

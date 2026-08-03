@@ -1,0 +1,322 @@
+<view class="page">
+
+  <!-- ==================== 顶部状态卡片 ==================== -->
+  <view class="status-card">
+    <view class="status-glow"></view>
+    <view class="status-main">
+      <view class="status-emoji">{{myStatus.emoji}}</view>
+      <view class="status-content">
+        <view class="status-label">当前状态</view>
+        <view class="status-text">{{myStatus.text}}</view>
+        <view class="status-countdown" wx:if="{{countdownText}}">{{countdownText}}</view>
+      </view>
+    </view>
+    <view class="status-bar {{myStatus.status}}"></view>
+  </view>
+
+  <!-- ==================== 情侣互动提示 ==================== -->
+  <view class="couple-tips" wx:if="{{coupleTips.length > 0}}">
+    <view class="tip-card" wx:for="{{coupleTips}}" wx:key="*this">
+      <text class="tip-icon">💕</text>
+      <text class="tip-text">{{item}}</text>
+    </view>
+  </view>
+
+  <!-- ==================== 今日课程 ==================== -->
+  <view class="section-card">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="title-icon">📋</text>
+        <text>今日课程</text>
+      </view>
+      <view class="section-badge">{{todayCourses.length}}门课</view>
+    </view>
+
+    <view wx:if="{{todayCourses.length === 0}}" class="empty-state">
+      <text class="empty-emoji">🎉</text>
+      <text class="empty-text">今天没有课哦~</text>
+      <text class="empty-sub">自由安排甜蜜时光吧 💕</text>
+    </view>
+
+    <view wx:else class="today-list">
+      <view
+        class="course-item {{item._id === currentCourseId ? 'is-current' : ''}}"
+        wx:for="{{todayCourses}}"
+        wx:key="_id"
+        data-id="{{item._id}}"
+        bindtap="tapTodayCourse"
+      >
+        <view class="course-color-bar" style="background: {{item.color}};"></view>
+        <view class="course-main">
+          <view class="course-top">
+            <text class="course-name">{{item.name}}</text>
+            <view class="course-tag">{{sections[item.startSection - 1].label}}-{{sections[item.endSection - 1].label}}</view>
+          </view>
+          <view class="course-meta">
+            <text wx:if="{{item.teacher}}" class="meta-item">👨‍🏫 {{item.teacher}}</text>
+            <text wx:if="{{item.place}}" class="meta-item">📍 {{item.place}}</text>
+            <text wx:if="{{item.className}}" class="meta-item">👥 {{item.className}}</text>
+            <text class="meta-time">⏰ {{sections[item.startSection - 1].time}}</text>
+          </view>
+        </view>
+        <view class="course-arrow">›</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 下一节课提醒 ==================== -->
+  <view class="section-card" wx:if="{{nextCourse}}">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="title-icon">⏰</text>
+        <text>下一节课</text>
+      </view>
+    </view>
+    <view class="next-course-card" style="border-left-color: {{nextCourse.course.color}};">
+      <view class="next-course-info">
+        <text class="next-name">{{nextCourse.course.name}}</text>
+        <text class="next-meta">{{nextCourse.course.teacher || ''}}{{nextCourse.course.teacher && nextCourse.course.place ? ' · ' : ''}}{{nextCourse.course.place || '未设置地点'}} · {{nextCourse.startTime}}</text>
+      </view>
+      <view class="next-countdown">
+        <text class="countdown-num">{{nextCourse.gapMinutes < 60 ? nextCourse.gapMinutes + '分钟' : Math.floor(nextCourse.gapMinutes/60) + '小时' + (nextCourse.gapMinutes%60 > 0 ? nextCourse.gapMinutes%60 + '分钟' : '')}}</text>
+        <text class="countdown-label">后上课</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 共同空闲时间 ==================== -->
+  <view class="section-card" wx:if="{{commonFreeTime.length > 0}}">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="title-icon">💞</text>
+        <text>共同空闲时间</text>
+      </view>
+    </view>
+    <view class="free-time-list">
+      <view class="free-slot" wx:for="{{commonFreeTime}}" wx:key="index">
+        <view class="free-dot"></view>
+        <view class="free-text">{{item.start}} → {{item.end}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 本周课程概览 ==================== -->
+  <view class="section-card">
+    <view class="section-header" bindtap="toggleWeekTable">
+      <view class="section-title">
+        <text class="title-icon">📅</text>
+        <text>本周课程</text>
+      </view>
+      <view class="section-arrow {{showWeekTable ? 'rotated' : ''}}">›</view>
+    </view>
+
+    <!-- 周选择条 -->
+    <view class="week-selector">
+      <view
+        class="week-day {{activeDay === idx ? 'active' : ''}} {{weeklySummary[idx] && weeklySummary[idx].count > 0 ? 'has-course' : ''}}"
+        wx:for="{{weekDays}}"
+        wx:key="*this"
+        wx:for-index="idx"
+        data-idx="{{idx}}"
+        bindtap="switchDay"
+      >
+        <text class="week-day-label">{{item}}</text>
+        <text class="week-day-count" wx:if="{{weeklySummary[idx]}}">{{weeklySummary[idx].count}}门</text>
+      </view>
+    </view>
+
+    <!-- 选中日课程列表（非今日时显示） -->
+    <view wx:if="{{activeDay !== todayIdx}}" class="active-day-section">
+      <view class="active-day-header">
+        <text class="active-day-title">{{activeDayLabel}}课程</text>
+      </view>
+      <view wx:if="{{activeDayCourses.length === 0}}" class="empty-state small">
+        <text class="empty-text">{{activeDayLabel}}没有课</text>
+      </view>
+      <view wx:else class="active-day-list">
+        <view
+          class="course-item"
+          wx:for="{{activeDayCourses}}"
+          wx:key="_id"
+          data-id="{{item._id}}"
+          bindtap="tapActiveDayCourse"
+        >
+          <view class="course-color-bar" style="background: {{item.color}};"></view>
+          <view class="course-main">
+            <view class="course-top">
+              <text class="course-name">{{item.name}}</text>
+              <view class="course-tag">{{sections[item.startSection - 1].label}}-{{sections[item.endSection - 1].label}}</view>
+            </view>
+            <view class="course-meta">
+              <text wx:if="{{item.teacher}}" class="meta-item">👨‍🏫 {{item.teacher}}</text>
+              <text wx:if="{{item.place}}" class="meta-item">📍 {{item.place}}</text>
+              <text wx:if="{{item.className}}" class="meta-item">👥 {{item.className}}</text>
+              <text class="meta-time">⏰ {{sections[item.startSection - 1].time}}</text>
+            </view>
+          </view>
+          <view class="course-arrow">›</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 展开的课表 -->
+    <view wx:if="{{showWeekTable}}" class="week-table-wrap">
+      <scroll-view class="week-table-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="week-table">
+          <view class="wt-row wt-header">
+            <view class="wt-cell wt-corner">节次</view>
+            <view class="wt-cell wt-day-head" wx:for="{{weekDays}}" wx:key="*this" wx:for-index="di">
+              <text class="wt-day-label {{activeDay === di ? 'active' : ''}}">{{item}}</text>
+            </view>
+          </view>
+          <view class="wt-row" wx:for="{{sections}}" wx:for-item="sec" wx:for-index="si" wx:key="section">
+            <view class="wt-cell wt-section">
+              <text class="wt-sec-num">{{sec.label}}</text>
+              <text class="wt-sec-time">{{sec.time}}</text>
+            </view>
+            <view class="wt-cell wt-course-cell" wx:for="{{weekDays}}" wx:for-item="w" wx:for-index="wi" wx:key="*this">
+              <block wx:if="{{gridCells[wi + '_' + sec.section] && gridCells[wi + '_' + sec.section].startSection === sec.section}}">
+                <view
+                  class="wt-course-block"
+                  style="background: {{gridCells[wi + '_' + sec.section].color}};"
+                  data-id="{{gridCells[wi + '_' + sec.section]._id}}"
+                  bindtap="tapCourse"
+                >
+                  <text class="wt-course-name">{{gridCells[wi + '_' + sec.section].name}}</text>
+                  <text class="wt-course-place" wx:if="{{gridCells[wi + '_' + sec.section].place}}">{{gridCells[wi + '_' + sec.section].place}}</text>
+                </view>
+              </block>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- ==================== 底部操作 ==================== -->
+  <view class="bottom-bar">
+    <view class="bottom-btn ocr-btn" bindtap="selectOcrImage">
+      <text>📷 拍照识课表</text>
+    </view>
+    <view class="bottom-btn add-btn" bindtap="openAddForm">
+      <text>+ 添加课程</text>
+    </view>
+  </view>
+
+  <view class="bottom-space"></view>
+
+</view>
+
+<!-- ==================== 编辑弹窗 ==================== -->
+<view class="mask" wx:if="{{showForm}}" bindtap="closeForm"></view>
+<view class="bottom-sheet {{showForm ? 'show' : ''}}">
+  <view class="sheet-title">{{editingId ? '编辑课程' : '添加课程'}}</view>
+
+  <view class="form-group">
+    <view class="form-label">课程名称 *</view>
+    <input class="form-input" placeholder="例如：高等数学" value="{{form.name}}" data-field="name" bindinput="onFormInput" maxlength="30" />
+  </view>
+
+  <view class="form-group">
+    <view class="form-label">授课教师</view>
+    <input class="form-input" placeholder="例如：张教授" value="{{form.teacher}}" data-field="teacher" bindinput="onFormInput" maxlength="20" />
+  </view>
+
+  <view class="form-group">
+    <view class="form-label">上课时间</view>
+    <view class="infl-row">
+      <view class="infl-item">
+        <view class="form-label sub">周几</view>
+        <picker mode="selector" range="{{weekDays}}" value="{{form.weekIndex}}" data-field="weekIndex" bindchange="onFormInput">
+          <view class="form-picker-row">{{weekDays[form.weekIndex]}}</view>
+        </picker>
+      </view>
+      <view class="infl-item">
+        <view class="form-label sub">开始节</view>
+        <picker mode="selector" range="{{sections}}" range-key="label" value="{{form.startSection - 1}}" data-field="startSection" bindchange="onFormInput">
+          <view class="form-picker-row">{{sections[form.startSection - 1].label}}</view>
+        </picker>
+      </view>
+      <view class="infl-item">
+        <view class="form-label sub">结束节</view>
+        <picker mode="selector" range="{{sections}}" range-key="label" value="{{form.endSection - 1}}" data-field="endSection" bindchange="onFormInput">
+          <view class="form-picker-row">{{sections[form.endSection - 1].label}}</view>
+        </picker>
+      </view>
+    </view>
+  </view>
+
+  <view class="form-group">
+    <view class="form-label">上课地点</view>
+    <input class="form-input" placeholder="如：教学楼A101" value="{{form.place}}" data-field="place" bindinput="onFormInput" maxlength="30" />
+  </view>
+
+  <view class="form-group">
+    <view class="form-label">班级</view>
+    <input class="form-input" placeholder="例如：计算机2024-1班" value="{{form.className}}" data-field="className" bindinput="onFormInput" maxlength="30" />
+  </view>
+
+  <view class="form-group">
+    <view class="form-label">颜色标记</view>
+    <view class="color-row">
+      <view
+        class="color-dot {{form.color === item ? 'active' : ''}}"
+        wx:for="{{courseColors}}"
+        wx:key="*this"
+        style="background: {{item}};"
+        data-color="{{item}}"
+        bindtap="pickColor"
+      ></view>
+    </view>
+  </view>
+
+  <view class="sheet-btns">
+    <button wx:if="{{editingId}}" class="btn-danger" bindtap="deleteCourse">删除</button>
+    <button class="btn-cancel" bindtap="closeForm">取消</button>
+    <button class="btn-save" bindtap="saveCourse">保存</button>
+  </view>
+</view>
+
+<!-- ==================== OCR识别结果审核面板 ==================== -->
+<view class="mask" wx:if="{{showOcrReview}}" bindtap="closeOcrReview"></view>
+<view class="ocr-review-panel {{showOcrReview ? 'show' : ''}}">
+  <view class="ocr-review-header">
+    <text class="ocr-review-title">识别结果审核</text>
+    <text class="ocr-review-sub">共识别 {{ocrCourses.length}} 门课程，请逐一核对并修正</text>
+  </view>
+
+  <view class="ocr-review-body">
+    <view
+      class="ocr-course-card"
+      wx:for="{{ocrCourses}}"
+      wx:key="_key"
+      wx:for-index="idx"
+    >
+      <view class="ocr-card-color" style="background: {{item.color}};"></view>
+      <view class="ocr-card-content">
+        <view class="ocr-card-row">
+          <text class="ocr-card-name">{{item.name}}</text>
+        </view>
+        <view class="ocr-card-meta">
+          <text class="ocr-meta-item" wx:if="{{item.teacher}}">👨‍🏫 {{item.teacher}}</text>
+          <text class="ocr-meta-item" wx:if="{{item.place}}">📍 {{item.place}}</text>
+          <text class="ocr-meta-item">📅 {{weekDays[item.weekIndex] || '未识别'}}</text>
+          <text class="ocr-meta-item">🕐 第{{item.startSection}}-{{item.endSection}}节</text>
+        </view>
+      </view>
+      <view class="ocr-card-actions">
+        <view class="ocr-action-btn edit-btn" data-idx="{{idx}}" bindtap="editOcrCourse">
+          <text>✏️ 修正</text>
+        </view>
+        <view class="ocr-action-btn del-btn" data-idx="{{idx}}" bindtap="deleteOcrCourse">
+          <text>🗑️</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="ocr-review-footer">
+    <button class="ocr-btn-cancel" bindtap="closeOcrReview">放弃</button>
+    <button class="ocr-btn-save" bindtap="saveOcrCourses">确认导入 ({{ocrCourses.length}}门)</button>
+  </view>
+</view>

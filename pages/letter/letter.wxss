@@ -1,0 +1,119 @@
+page {
+  background: #f7f7f7;
+}
+
+.container {
+  padding: 30rpx;
+}
+
+.title {
+  font-size: 56rpx;
+  font-weight: bold;
+  color: #d44a6a;
+  margin-top: 30rpx;
+}
+
+.card {
+  margin-top: 30rpx;
+  background: white;
+  border-radius: 30rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(212, 74, 106, 0.1);
+}
+
+.input {
+  height: 90rpx;
+  background: #fff5f7;
+  border-radius: 20rpx;
+  padding-left: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.textarea {
+  background: #fff5f7;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  height: 280rpx;
+  margin-bottom: 20rpx;
+}
+
+.btn {
+  background: linear-gradient(135deg, #ff7eb3, #d44a6a);
+  color: white;
+  border-radius: 999rpx;
+}
+
+.list {
+  margin-top: 40rpx;
+}
+
+.item {
+  background: white;
+  border-radius: 30rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 2rpx 12rpx rgba(212, 74, 106, 0.08);
+}
+
+.left {
+  width: 85%;
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.item-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  flex: 1;
+}
+
+.tag {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  margin-left: 12rpx;
+  flex-shrink: 0;
+}
+
+.tag-mine {
+  background: #ffe4ec;
+  color: #d44a6a;
+}
+
+.tag-partner {
+  background: #e8f4ff;
+  color: #4a90e2;
+}
+
+.item-content {
+  margin-top: 20rpx;
+  color: #666;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.time {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.delete {
+  color: #d44a6a;
+  font-size: 26rpx;
+  align-self: center;
+}
+
+.empty {
+  text-align: center;
+  color: #bbb;
+  font-size: 28rpx;
+  padding: 60rpx 0;
+}

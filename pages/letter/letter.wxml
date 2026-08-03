@@ -1,0 +1,65 @@
+<view class="container">
+
+<view class="title">💌 情书</view>
+
+<view class="card">
+
+  <input
+    class="input"
+    placeholder="给情书起个标题..."
+    value="{{title}}"
+    bindinput="onTitleInput"
+  />
+
+  <textarea
+    class="textarea"
+    placeholder="写下想对 Ta 说的话..."
+    value="{{content}}"
+    bindinput="onContentInput"
+    maxlength="2000"
+  ></textarea>
+
+  <button class="btn" bindtap="publishLetter">寄出情书</button>
+
+</view>
+
+<view class="list">
+
+  <view
+    class="item"
+    wx:for="{{list}}"
+    wx:key="_id"
+  >
+
+    <view class="left">
+
+      <view class="item-header">
+
+        <view class="item-title">{{item.title}}</view>
+
+        <view class="tag {{item.isMine ? 'tag-mine' : 'tag-partner'}}">
+          {{item.isMine ? '我写的' : item.authorName + '写的'}}
+        </view>
+
+      </view>
+
+      <view class="item-content">{{item.content}}</view>
+
+      <view class="time">{{item.time}}</view>
+
+    </view>
+
+    <view
+      wx:if="{{item.isMine}}"
+      class="delete"
+      data-id="{{item._id}}"
+      bindtap="deleteItem"
+    >删除</view>
+
+  </view>
+
+  <view wx:if="{{list.length === 0}}" class="empty">还没有情书，写第一封吧 💕</view>
+
+</view>
+
+</view>

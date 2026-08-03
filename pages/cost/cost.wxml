@@ -1,0 +1,344 @@
+<view class="page">
+
+  <!-- 页面标题 -->
+  <view class="page-title">📊 算成本</view>
+
+  <!-- 汇总统计卡片 -->
+  <view class="hero-card">
+    <view class="hero-main">
+      <view class="hero-item">
+        <view class="hero-value">￥{{total}}</view>
+        <view class="hero-label">总金额</view>
+      </view>
+      <view class="hero-divider"></view>
+      <view class="hero-item">
+        <view class="hero-value">￥{{monthTotal}}</view>
+        <view class="hero-label">本月</view>
+      </view>
+      <view class="hero-divider"></view>
+      <view class="hero-item">
+        <view class="hero-value">{{count}}</view>
+        <view class="hero-label">记录数</view>
+      </view>
+    </view>
+    <view class="hero-sub" wx:if="{{hasCouple}}">
+      <text class="sub-item mine">{{myName}}付：￥{{myTotal}}</text>
+      <text class="sub-item partner">{{partnerName}}付：￥{{partnerTotal}}</text>
+    </view>
+  </view>
+
+  <!-- 计算模式切换 -->
+  <view class="mode-tabs">
+    <view
+      class="mode-tab {{mode === 'aa' ? 'active' : ''}}"
+      data-mode="aa"
+      bindtap="switchMode"
+    >
+      <text class="mode-icon">👥</text>
+      <text>AA均分</text>
+    </view>
+    <view
+      class="mode-tab {{mode === 'ratio' ? 'active' : ''}}"
+      data-mode="ratio"
+      bindtap="switchMode"
+    >
+      <text class="mode-icon">📐</text>
+      <text>按比例</text>
+    </view>
+    <view
+      class="mode-tab {{mode === 'custom' ? 'active' : ''}}"
+      data-mode="custom"
+      bindtap="switchMode"
+    >
+      <text class="mode-icon">✏️</text>
+      <text>自定义</text>
+    </view>
+  </view>
+
+  <!-- 计算表单卡片 -->
+  <view class="calc-card">
+    <!-- 名称 -->
+    <view class="input-group">
+      <view class="input-label">项目名称</view>
+      <input
+        class="input"
+        placeholder="如：周末约会、旅行花费"
+        value="{{title}}"
+        bindinput="onTitleInput"
+      />
+    </view>
+
+    <!-- 总金额 -->
+    <view class="input-group">
+      <view class="input-label">总金额（元）</view>
+      <input
+        class="input money-input"
+        placeholder="请输入总金额"
+        type="digit"
+        value="{{money}}"
+        bindinput="onMoneyInput"
+      />
+    </view>
+
+    <!-- AA模式：人数输入 -->
+    <view class="input-group" wx:if="{{mode === 'aa'}}">
+      <view class="input-label">分摊人数</view>
+      <view class="people-stepper">
+        <view class="stepper-btn" bindtap="decreasePeople">−</view>
+        <input
+          class="stepper-input"
+          type="number"
+          value="{{people}}"
+          bindinput="onPeopleInput"
+        />
+        <view class="stepper-btn" bindtap="increasePeople">+</view>
+      </view>
+    </view>
+
+    <!-- 按比例模式 -->
+    <view class="input-group" wx:if="{{mode === 'ratio'}}">
+      <view class="input-label">分摊比例</view>
+      <view class="ratio-row">
+        <view class="ratio-item">
+          <text class="ratio-name">{{myName || '我'}}</text>
+          <view class="ratio-input-wrap">
+            <input
+              class="ratio-input"
+              type="number"
+              maxlength="3"
+              value="{{ratioMine}}"
+              bindinput="onRatioMineInput"
+            />
+            <text class="ratio-unit">%</text>
+          </view>
+        </view>
+        <text class="ratio-sep">:</text>
+        <view class="ratio-item">
+          <text class="ratio-name">{{partnerName || 'Ta'}}</text>
+          <view class="ratio-input-wrap">
+            <input
+              class="ratio-input"
+              type="number"
+              maxlength="3"
+              value="{{ratioPartner}}"
+              bindinput="onRatioPartnerInput"
+            />
+            <text class="ratio-unit">%</text>
+          </view>
+        </view>
+      </view>
+      <view class="ratio-hint" wx:if="{{ratioMine && ratioPartner}}">
+        <text wx:if="{{totalRatio === 100}}" class="hint-ok">✓ 比例正确</text>
+        <text wx:else class="hint-err">⚠ 当前合计 {{totalRatio}}%，需要等于 100%</text>
+      </view>
+    </view>
+
+    <!-- 自定义模式 -->
+    <view class="input-group" wx:if="{{mode === 'custom'}}">
+      <view class="input-label">每人应付金额</view>
+      <view class="custom-row">
+        <view class="custom-item">
+          <text class="custom-name">{{myName || '我'}}</text>
+          <view class="custom-input-wrap">
+            <text class="custom-yuan">￥</text>
+            <input
+              class="custom-input"
+              type="digit"
+              placeholder="0.00"
+              value="{{customMine}}"
+              bindinput="onCustomMineInput"
+            />
+          </view>
+        </view>
+        <view class="custom-item">
+          <text class="custom-name">{{partnerName || 'Ta'}}</text>
+          <view class="custom-input-wrap">
+            <text class="custom-yuan">￥</text>
+            <input
+              class="custom-input"
+              type="digit"
+              placeholder="0.00"
+              value="{{customPartner}}"
+              bindinput="onCustomPartnerInput"
+            />
+          </view>
+        </view>
+      </view>
+      <view class="ratio-hint" wx:if="{{customDiff !== ''}}">
+        <text wx:if="{{customMatch}}" class="hint-ok">✓ 金额匹配总金额</text>
+        <text wx:else class="hint-err">⚠ 与总金额相差 ￥{{customDiff}}</text>
+      </view>
+    </view>
+
+    <!-- 分类选择 -->
+    <view class="input-group">
+      <view class="input-label">消费分类</view>
+      <picker
+        range="{{categoryList}}"
+        range-key="name"
+        value="{{categoryIndex}}"
+        bindchange="onCategoryChange"
+      >
+        <view class="picker-display">
+          <text class="picker-icon">{{categoryList[categoryIndex].icon}}</text>
+          <text>{{categoryList[categoryIndex].name}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 支付人选择 -->
+    <view class="input-group">
+      <view class="input-label">由谁支付</view>
+      <view class="who-paid">
+        <view
+          class="who-option {{whoPaid === 'mine' ? 'active' : ''}}"
+          data-who="mine"
+          bindtap="switchWhoPaid"
+        >{{myName || '我'}}</view>
+        <view
+          class="who-option {{whoPaid === 'partner' ? 'active' : ''}}"
+          data-who="partner"
+          bindtap="switchWhoPaid"
+        >{{partnerName || 'Ta'}}</view>
+      </view>
+    </view>
+
+    <!-- 日期选择 -->
+    <view class="input-group">
+      <view class="input-label">消费日期</view>
+      <picker mode="date" value="{{expenseDate}}" bindchange="onDateChange">
+        <view class="picker-display">
+          <text>📅</text>
+          <text>{{expenseDate || '选择日期'}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 备注 -->
+    <view class="input-group">
+      <view class="input-label">备注（选填）</view>
+      <input
+        class="input"
+        placeholder="添加备注信息..."
+        value="{{note}}"
+        bindinput="onNoteInput"
+      />
+    </view>
+
+    <!-- 计算按钮 -->
+    <button class="btn-calc" bindtap="calculate">
+      <text class="btn-icon">🧮</text>
+      <text>开始计算</text>
+    </button>
+  </view>
+
+  <!-- 计算结果 -->
+  <view class="result-card" wx:if="{{showResult}}">
+    <view class="result-head">
+      <text class="result-icon">💡</text>
+      <text class="result-title-text">计算结果</text>
+      <view class="result-close" bindtap="closeResult">✕</view>
+    </view>
+    <view class="result-body">
+      <view class="result-item">
+        <view class="result-label">总金额</view>
+        <view class="result-value">￥{{resultTotal}}</view>
+      </view>
+      <view class="result-divider"></view>
+      <!-- AA模式结果 -->
+      <block wx:if="{{mode === 'aa'}}">
+        <view class="result-item highlight">
+          <view class="result-label">人均</view>
+          <view class="result-value big">￥{{resultAvg}}</view>
+        </view>
+        <view class="result-detail">{{people}} 人分摊，每人 ￥{{resultAvg}}</view>
+      </block>
+      <!-- 按比例模式结果 -->
+      <block wx:if="{{mode === 'ratio'}}">
+        <view class="result-item highlight">
+          <view class="result-label">{{myName || '我'}}应付</view>
+          <view class="result-value big">￥{{resultMine}}</view>
+        </view>
+        <view class="result-item highlight">
+          <view class="result-label">{{partnerName || 'Ta'}}应付</view>
+          <view class="result-value big">￥{{resultPartner}}</view>
+        </view>
+      </block>
+      <!-- 自定义模式结果 -->
+      <block wx:if="{{mode === 'custom'}}">
+        <view class="result-item highlight">
+          <view class="result-label">{{myName || '我'}}应付</view>
+          <view class="result-value big">￥{{resultMine}}</view>
+        </view>
+        <view class="result-item highlight">
+          <view class="result-label">{{partnerName || 'Ta'}}应付</view>
+          <view class="result-value big">￥{{resultPartner}}</view>
+        </view>
+      </block>
+    </view>
+    <view class="result-actions">
+      <button class="btn-save" bindtap="saveRecord">💾 保存记录</button>
+    </view>
+  </view>
+
+  <!-- 分类统计 -->
+  <view class="chart-card" wx:if="{{categoryStats.length > 0}}">
+    <view class="chart-title">📈 消费分类统计</view>
+    <view class="bar-list">
+      <view class="bar-row" wx:for="{{categoryStats}}" wx:key="name">
+        <view class="bar-header">
+          <view class="bar-left">
+            <text class="bar-icon">{{item.icon}}</text>
+            <text class="bar-name">{{item.name}}</text>
+          </view>
+          <text class="bar-amount">￥{{item.amount}}</text>
+        </view>
+        <view class="bar-track">
+          <view class="bar-fill" style="{{item.barStyle}}"></view>
+        </view>
+        <view class="bar-percent">{{item.percent}}%</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 历史记录标题 -->
+  <view class="section-header">
+    <text class="section-title">📋 历史记录</text>
+    <text class="section-count" wx:if="{{list.length > 0}}">共 {{list.length}} 条</text>
+  </view>
+
+  <!-- 历史记录列表 -->
+  <view class="history-list">
+    <view class="history-item" wx:for="{{list}}" wx:key="_id">
+      <view class="item-left">
+        <view class="item-icon" style="{{item._iconStyle}}">{{item._categoryIcon || '📌'}}</view>
+        <view class="item-body">
+          <view class="item-title">{{item.title}}</view>
+          <view class="item-meta">
+            <text class="meta-tag" wx:if="{{item._whoLabel}}">{{item._whoLabel}}支付</text>
+            <text class="meta-cat">{{item._categoryName || item.category || '其它'}}</text>
+            <text wx:if="{{item._dateText}}"> · {{item._dateText}}</text>
+          </view>
+          <view class="item-note" wx:if="{{item.note}}">💬 {{item.note}}</view>
+        </view>
+      </view>
+      <view class="item-right">
+        <view class="item-total">￥{{item._moneyText}}</view>
+        <view class="item-avg">人均 ￥{{item._avgText}}</view>
+        <view
+          class="item-delete"
+          data-id="{{item._id}}"
+          catchtap="deleteItem"
+        >删除</view>
+      </view>
+    </view>
+    <view wx:if="{{list.length === 0}}" class="empty-state">
+      <view class="empty-icon">📭</view>
+      <view class="empty-text">还没有计算记录</view>
+      <view class="empty-sub">输入上方信息，开始计算吧~</view>
+    </view>
+  </view>
+
+</view>

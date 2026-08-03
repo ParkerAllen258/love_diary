@@ -1,0 +1,109 @@
+<view class="page">
+
+  <!-- ==================== 未绑定 ==================== -->
+  <view wx:if="{{!hasCouple}}" class="unbound-card">
+    <view class="unbound-emoji">🎯</view>
+    <view class="unbound-title">还没绑定情侣哦</view>
+    <view class="unbound-desc">绑定后一起制定年度目标吧 💕</view>
+  </view>
+
+  <block wx:else>
+
+  <!-- ==================== 年度标题 ==================== -->
+  <view class="year-header">
+    <view class="year-arrow" bindtap="prevYear">‹</view>
+    <view class="year-center">
+      <text class="year-num">{{currentYear}}</text>
+      <text class="year-label">年度目标</text>
+    </view>
+    <view class="year-arrow" bindtap="nextYear">›</view>
+  </view>
+
+  <!-- ==================== 创建目标按钮 ==================== -->
+  <view class="add-goal-btn" bindtap="showAddForm">
+    <text class="agb-icon">+</text>
+    <text>创建新目标</text>
+  </view>
+
+  <!-- ==================== 创建表单 ==================== -->
+  <view class="form-card" wx:if="{{showForm}}">
+    <input class="form-input" placeholder="今年想一起完成什么？💭" value="{{goalTitle}}" bindinput="onGoalTitleInput" maxlength="50" />
+    <view class="form-btns">
+      <view class="form-cancel" bindtap="hideAddForm">取消</view>
+      <view class="form-confirm" bindtap="addGoal">创建目标 ✨</view>
+    </view>
+  </view>
+
+  <!-- ==================== 目标卡片列表 ==================== -->
+  <view class="goal-list">
+    <view class="goal-card {{item.allDone ? 'all-done' : ''}}" wx:for="{{goals}}" wx:key="_id" wx:for-item="item" style="{{item.cardStyle}}">
+      
+      <!-- 头部：标题 + 进度 -->
+      <view class="gc-header">
+        <view class="gc-title-row">
+          <text class="gc-icon">{{item.allDone ? '✅' : '🎯'}}</text>
+          <text class="gc-title">{{item.title}}</text>
+          <text class="gc-owner">{{item.ownerLabel}}</text>
+        </view>
+        <view class="gc-progress-row">
+          <view class="gc-progress-bar">
+            <view class="gc-progress-fill {{item.allDone ? 'done' : ''}}" style="{{item.barStyle}}"></view>
+          </view>
+          <text class="gc-progress-text">{{item.done}}/{{item.total}}</text>
+        </view>
+      </view>
+
+      <!-- 子任务列表 -->
+      <view class="gc-tasks">
+        <view 
+          class="gc-task {{task.done ? 'task-done' : ''}}"
+          wx:for="{{item.tasks}}" 
+          wx:key="id" 
+          wx:for-item="task"
+          data-goal-id="{{item._id}}"
+          data-task-id="{{task.id}}"
+          bindtap="toggleTask"
+        >
+          <view class="task-check {{task.done ? 'checked' : ''}}">
+            <text wx:if="{{task.done}}">✓</text>
+          </view>
+          <text class="task-text">{{task.text}}</text>
+          <view class="task-del" data-goal-id="{{item._id}}" data-task-id="{{task.id}}" catchtap="deleteTask">✕</view>
+        </view>
+      </view>
+
+      <!-- 添加子任务 -->
+      <view class="gc-add-task" data-id="{{item._id}}" bindtap="toggleTaskInput">
+        <text class="gat-icon">+</text>
+        <text>添加子任务</text>
+      </view>
+
+      <view class="gc-task-input-row" wx:if="{{showTaskInput[item._id]}}">
+        <input 
+          class="gc-task-input" 
+          placeholder="子任务内容..." 
+          value="{{taskText[item._id] || ''}}" 
+          data-id="{{item._id}}"
+          bindinput="onTaskTextInput"
+          maxlength="40"
+        />
+        <view class="gc-task-confirm" data-id="{{item._id}}" bindtap="addSubTask">确定</view>
+      </view>
+
+      <!-- 删除目标 -->
+      <view wx:if="{{item.isMine}}" class="gc-delete" data-id="{{item._id}}" bindtap="deleteGoal">删除目标</view>
+
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{goals.length === 0}}" class="empty-state">
+      <view class="empty-emoji">🎯</view>
+      <text class="empty-text">还没有年度目标</text>
+      <text class="empty-sub">一起写下今年想完成的事情吧 💕</text>
+    </view>
+  </view>
+
+  </block>
+
+  <view class="bottom-space"></view>
+</view>

@@ -1,0 +1,174 @@
+<view class="page">
+
+  <!-- 页面标题 -->
+  <view class="page-title">📒 记事本</view>
+
+  <!-- 统计卡片 -->
+  <view class="stats-row">
+    <view class="stat-card">
+      <view class="stat-num">{{totalCount}}</view>
+      <view class="stat-label">全部笔记</view>
+    </view>
+    <view class="stat-card pinned">
+      <view class="stat-num">{{pinnedCount}}</view>
+      <view class="stat-label">⭐ 重要事项</view>
+    </view>
+    <view class="stat-card month">
+      <view class="stat-num">{{monthCount}}</view>
+      <view class="stat-label">本月新增</view>
+    </view>
+  </view>
+
+  <!-- 分类筛选标签 -->
+  <scroll-view class="filter-scroll" scroll-x enable-flex>
+    <view
+      class="filter-tag {{activeFilter === 'all' ? 'active' : ''}}"
+      data-filter="all"
+      bindtap="switchFilter"
+    >全部</view>
+    <view
+      class="filter-tag {{activeFilter === 'pinned' ? 'active' : ''}}"
+      data-filter="pinned"
+      bindtap="switchFilter"
+    >⭐ 重要</view>
+    <view
+      class="filter-tag {{activeFilter === item.name ? 'active' : ''}}"
+      wx:for="{{categoryList}}"
+      wx:key="name"
+      data-filter="{{item.name}}"
+      bindtap="switchFilter"
+      style="{{activeFilter === item.name ? 'background:' + item.color + '; color:#fff;' : ''}}"
+    >
+      <text>{{item.icon}} {{item.name}}</text>
+    </view>
+  </scroll-view>
+
+  <!-- 新建按钮 -->
+  <view class="add-toggle" bindtap="toggleForm">
+    <text wx:if="{{!showForm}}">✏️ 写一条笔记</text>
+    <text wx:else>收起编辑</text>
+  </view>
+
+  <!-- 新增表单 -->
+  <view class="form-card" wx:if="{{showForm}}">
+    <!-- 标题 -->
+    <view class="form-group">
+      <view class="form-label">笔记标题</view>
+      <input
+        class="form-input"
+        placeholder="给重要的事情起个标题..."
+        value="{{title}}"
+        bindinput="onTitleInput"
+        maxlength="50"
+      />
+    </view>
+
+    <!-- 分类和重要标记一行 -->
+    <view class="form-row">
+      <picker
+        class="form-picker-wrap"
+        range="{{categoryList}}"
+        range-key="name"
+        value="{{categoryIndex}}"
+        bindchange="onCategoryChange"
+      >
+        <view class="form-picker">
+          <text class="picker-emoji">{{categoryList[categoryIndex].icon}}</text>
+          <text>{{categoryList[categoryIndex].name}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+      <view class="pinned-toggle {{isPinned ? 'on' : ''}}" bindtap="togglePinned">
+        <text class="pinned-star">{{isPinned ? '⭐' : '☆'}}</text>
+        <text>重要</text>
+      </view>
+    </view>
+
+    <!-- 内容 -->
+    <view class="form-group">
+      <view class="form-label">笔记内容</view>
+      <textarea
+        class="form-textarea"
+        placeholder="记录重要的事情、灵感、想法...&#10;&#10;支持多行文字，尽情记录吧~"
+        value="{{content}}"
+        bindinput="onContentInput"
+        maxlength="5000"
+        auto-height
+      />
+      <view class="char-count">{{content.length}}/5000</view>
+    </view>
+
+    <!-- 按钮区 -->
+    <view class="form-btns">
+      <button class="btn-cancel" bindtap="toggleForm">取消</button>
+      <button class="btn-submit" bindtap="{{editingId ? 'updateNote' : 'saveNote'}}">
+        {{editingId ? '💾 保存修改' : '📝 保存笔记'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 笔记列表 -->
+  <view class="note-list">
+    <view
+      class="note-card {{item._isPinned ? 'is-pinned' : ''}}"
+      wx:for="{{displayList}}"
+      wx:key="_id"
+    >
+      <!-- 卡片头部 -->
+      <view class="card-head">
+        <view class="card-category" style="background: {{item._categoryColor}};">
+          <text>{{item._categoryIcon}}</text>
+          <text>{{item._categoryName}}</text>
+        </view>
+        <view class="card-badges">
+          <text wx:if="{{item._isPinned}}" class="badge-pin">⭐ 重要</text>
+        </view>
+      </view>
+
+      <!-- 卡片主体 -->
+      <view class="card-body">
+        <view class="card-title">{{item.title}}</view>
+        <view class="card-content">{{item._preview}}</view>
+      </view>
+
+      <!-- 卡片底部 -->
+      <view class="card-foot">
+        <view class="card-time">
+          <text>🕐 {{item._dateText}}</text>
+          <text wx:if="{{item._updatedText}}" class="updated-hint">（已编辑）</text>
+        </view>
+        <view class="card-actions">
+          <view
+            class="action-btn pin-btn"
+            data-id="{{item._id}}"
+            data-pinned="{{item._isPinned}}"
+            catchtap="toggleNotePinned"
+          >{{item._isPinned ? '取消重要' : '标记重要'}}</view>
+          <view
+            class="action-btn edit-btn"
+            data-id="{{item._id}}"
+            catchtap="editNote"
+          >编辑</view>
+          <view
+            class="action-btn del-btn"
+            data-id="{{item._id}}"
+            catchtap="deleteItem"
+          >删除</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:if="{{displayList.length === 0}}" class="empty-state">
+      <view class="empty-emoji">📭</view>
+      <view class="empty-title">{{activeFilter === 'all' ? '还没有笔记' : '该分类下没有笔记'}}</view>
+      <view class="empty-desc">点击上方「写一条笔记」开始记录重要的事情吧</view>
+    </view>
+
+    <!-- 加载更多提示 -->
+    <view wx:if="{{displayList.length > 0 && hasMore}}" class="load-more">
+      <text>上拉加载更多...</text>
+    </view>
+  </view>
+
+</view>

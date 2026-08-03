@@ -1,0 +1,263 @@
+<view class="page">
+
+  <!-- ==================== 顶部概览卡片 ==================== -->
+  <view class="hero-card">
+    <view class="hero-header">
+      <text class="hero-title">💰 窝囊费</text>
+      <view class="hero-toggle {{viewMode === 'report' ? 'active' : ''}}" bindtap="toggleReport">
+        {{viewMode === 'report' ? '📋 列表' : '📊 报表'}}
+      </view>
+    </view>
+
+    <!-- 年份 + 月份选择器 -->
+    <view class="time-switch">
+      <view class="ts-row">
+        <view class="ys-arrow" bindtap="prevYear">‹</view>
+        <text class="ys-text">{{selectedYear}}年</text>
+        <view class="ys-arrow" bindtap="nextYear">›</view>
+      </view>
+      <view class="ts-row">
+        <view class="ys-arrow" bindtap="prevMonth">‹</view>
+        <text class="ys-text month-text">{{monthLabel}}</text>
+        <view class="ys-arrow" bindtap="nextMonth">›</view>
+      </view>
+    </view>
+
+    <view wx:if="{{viewMode === 'list'}}">
+      <view class="balance-row">
+        <view class="bal-item">
+          <text class="bal-label">结余</text>
+          <text class="bal-num {{yearStats.balance >= 0 ? 'green' : 'red'}}">{{yearStats.balance >= 0 ? '+' : ''}}{{yearStats.balance}}</text>
+        </view>
+        <view class="bal-divider"></view>
+        <view class="bal-item">
+          <text class="bal-label">收入</text>
+          <text class="bal-num green">+{{yearStats.totalIncome}}</text>
+        </view>
+        <view class="bal-divider"></view>
+        <view class="bal-item">
+          <text class="bal-label">支出</text>
+          <text class="bal-num red">-{{yearStats.totalExpense}}</text>
+        </view>
+      </view>
+
+      <view class="person-row">
+        <view class="person-card">
+          <text class="pc-name">👤 {{myName}}</text>
+          <text class="pc-in">+{{stats.myIncome}}</text>
+          <text class="pc-out">-{{stats.myExpense}}</text>
+        </view>
+        <view class="person-card">
+          <text class="pc-name">👤 {{partnerName}}</text>
+          <text class="pc-in">+{{stats.partnerIncome}}</text>
+          <text class="pc-out">-{{stats.partnerExpense}}</text>
+        </view>
+      </view>
+
+      <!-- 月度预算 -->
+      <view class="budget-section" wx:if="{{selectedMonth >= 0 && monthLabel !== '全年'}}">
+        <view wx:if="{{budget}}">
+          <view class="budget-header">
+            <text class="budget-title">🎯 本月预算 ¥{{budget}}</text>
+            <text class="budget-edit" bindtap="showBudgetInput">修改</text>
+          </view>
+          <view class="budget-bar-bg">
+            <view class="budget-bar-fill" style="{{budgetStyle}}"></view>
+          </view>
+          <view class="budget-info">
+            <text class="budget-used {{budgetPercent >= 90 ? 'danger' : ''}}">已用 ¥{{budgetUsed}}</text>
+            <text class="budget-left">剩余 ¥{{budgetLeft}}</text>
+            <text class="budget-pct {{budgetPercent >= 90 ? 'danger' : ''}}">{{budgetPercent}}%</text>
+          </view>
+        </view>
+        <view wx:else class="budget-empty" bindtap="showBudgetInput">
+          <text>+ 设置月度预算</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 报表模式 -->
+    <view wx:else class="report-section">
+      <view class="report-tabs">
+        <view class="report-tab {{reportMode === 'all' ? 'active' : ''}}" data-mode="all" bindtap="reportFilter">双方合计</view>
+        <view class="report-tab {{reportMode === 'mine' ? 'active' : ''}}" data-mode="mine" bindtap="reportFilter">{{myName}}</view>
+        <view class="report-tab {{reportMode === 'partner' ? 'active' : ''}}" data-mode="partner" bindtap="reportFilter">{{partnerName}}</view>
+      </view>
+      <view class="report-summary">
+        <view class="rs-item"><text class="rs-dot green"></text>收入 +{{stats.totalIncome}}</view>
+        <view class="rs-item"><text class="rs-dot red"></text>支出 -{{stats.totalExpense}}</view>
+        <view class="rs-item"><text class="rs-dot {{stats.balance >= 0 ? 'green' : 'red'}}"></text>结余 {{stats.balance}}</view>
+      </view>
+
+      <!-- 报表模式预算 -->
+      <view class="budget-section" wx:if="{{selectedMonth >= 0 && monthLabel !== '全年' && budget}}">
+        <view class="budget-header">
+          <text class="budget-title">🎯 本月预算 ¥{{budget}}</text>
+        </view>
+        <view class="budget-bar-bg">
+          <view class="budget-bar-fill" style="{{budgetStyle}}"></view>
+        </view>
+        <view class="budget-info">
+          <text class="budget-used {{budgetPercent >= 90 ? 'danger' : ''}}">已用 ¥{{budgetUsed}}</text>
+          <text class="budget-left">剩余 ¥{{budgetLeft}}</text>
+          <text class="budget-pct {{budgetPercent >= 90 ? 'danger' : ''}}">{{budgetPercent}}%</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 饼图 + 分类 ==================== -->
+  <view class="section-card" wx:if="{{viewMode === 'report' && pieLegend.length > 0}}">
+    <view class="section-title"><text class="st-icon">🍩</text>{{selectedYear}}年支出分布</view>
+    <view class="pie-section">
+      <view class="pie-donut" style="{{pieStyle}}">
+        <view class="pie-hole">
+          <text class="pie-total-label">总支出</text>
+          <text class="pie-total-num">¥{{yearStats.totalExpense}}</text>
+        </view>
+      </view>
+      <view class="pie-legend">
+        <view class="pl-item" wx:for="{{pieLegend}}" wx:key="name">
+          <view class="pl-dot" style="{{item.dotStyle}}"></view>
+          <text class="pl-name">{{item.name}}</text>
+          <text class="pl-pct">{{item.percent}}%</text>
+          <text class="pl-amt">¥{{item.amount}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 双方消费占比 ==================== -->
+  <view class="section-card" wx:if="{{viewMode === 'report' && reportMode === 'all'}}">
+    <view class="section-title"><text class="st-icon">⚖️</text>双方消费占比</view>
+    <view class="ratio-section">
+      <view class="ratio-row">
+        <text class="ratio-label">{{myName}}</text>
+        <view class="ratio-bar-bg">
+          <view class="ratio-bar-fill ratio-mine" style="{{ratioMyStyle}}"></view>
+        </view>
+        <text class="ratio-pct">{{ratioMyPct}}%</text>
+      </view>
+      <view class="ratio-row">
+        <text class="ratio-label">{{partnerName}}</text>
+        <view class="ratio-bar-bg">
+          <view class="ratio-bar-fill ratio-partner" style="{{ratioPartnerStyle}}"></view>
+        </view>
+        <text class="ratio-pct">{{ratioPartnerPct}}%</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 月度统计 ==================== -->
+  <view class="section-card" wx:if="{{monthStats.length > 0}}">
+    <view class="section-title"><text class="st-icon">📅</text>月度收支趋势</view>
+    <view class="month-list">
+      <view class="month-row" wx:for="{{monthStats}}" wx:key="month">
+        <text class="mr-label">{{item.month}}</text>
+        <view class="mr-bar-wrap">
+          <view class="mr-bar mr-out" style="{{item.expenseStyle}}"></view>
+          <view class="mr-bar mr-in" style="{{item.incomeStyle}}"></view>
+        </view>
+        <view class="mr-amounts">
+          <text class="mr-out-txt">-{{item.expense}}</text>
+          <text class="mr-in-txt">+{{item.income}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 分类排行 ==================== -->
+  <view class="section-card" wx:if="{{catStats.length > 0}}">
+    <view class="section-title"><text class="st-icon">📊</text>分类排行</view>
+    <view class="cat-list">
+      <view class="cat-row" wx:for="{{catStats}}" wx:key="name">
+        <view class="cat-icon" style="{{item.iconStyle}}">{{item.icon}}</view>
+        <text class="cat-name">{{item.name}}</text>
+        <text class="cat-amt">¥{{item.amount}}</text>
+        <view class="cat-bar-bg"><view class="cat-bar-fill" style="{{item.barStyle}}"></view></view>
+        <text class="cat-pct">{{item.percent}}%</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 筛选标签 ==================== -->
+  <view class="filter-tabs">
+    <view class="ftab {{tab === 'all' ? 'active' : ''}}" data-tab="all" bindtap="switchTab">全部</view>
+    <view class="ftab {{tab === 'mine' ? 'active' : ''}}" data-tab="mine" bindtap="switchTab">{{myName}}</view>
+    <view class="ftab {{tab === 'partner' ? 'active' : ''}}" data-tab="partner" bindtap="switchTab">{{partnerName}}</view>
+  </view>
+
+  <!-- ==================== 记账按钮 ==================== -->
+  <view class="add-btn" bindtap="toggleForm">
+    {{showForm ? '收起 ✕' : '+ 记一笔'}}
+  </view>
+
+  <!-- ==================== 记账表单 ==================== -->
+  <view class="form-card" wx:if="{{showForm}}">
+    <view class="type-switch">
+      <view class="type-btn {{formType === 'expense' ? 'active exp' : ''}}" data-type="expense" bindtap="setFormType">💸 支出</view>
+      <view class="type-btn {{formType === 'income' ? 'active inc' : ''}}" data-type="income" bindtap="setFormType">💰 收入</view>
+    </view>
+
+    <input class="f-input" placeholder="用途，如：晚饭、奶茶" value="{{title}}" bindinput="onTitleInput" />
+    <input class="f-input" placeholder="金额（元）" type="digit" value="{{money}}" bindinput="onMoneyInput" />
+
+    <view class="f-row">
+      <picker range="{{formType === 'income' ? incomeCats : expenseCats}}" range-key="name" value="{{categoryIndex}}" bindchange="onCategoryChange">
+        <view class="f-picker">
+          <text>{{formType === 'income' ? incomeCats[categoryIndex].icon : expenseCats[categoryIndex].icon}}</text>
+          <text>{{formType === 'income' ? incomeCats[categoryIndex].name : expenseCats[categoryIndex].name}}</text>
+        </view>
+      </picker>
+      <picker range="{{payMethods}}" value="{{payIndex}}" bindchange="onPayChange">
+        <view class="f-picker">{{payMethods[payIndex]}}</view>
+      </picker>
+    </view>
+
+    <picker mode="date" value="{{expenseDate}}" bindchange="onDateChange">
+      <view class="f-date">📅 {{expenseDate}}</view>
+    </picker>
+
+    <input class="f-input" placeholder="备注（选填）" value="{{note}}" bindinput="onNoteInput" />
+    <view class="f-author-hint">👤 记作 <text class="f-author-name">{{myName}}</text> 的账</view>
+    <button class="f-submit" bindtap="addRecord">记入{{myName}}的窝囊费</button>
+  </view>
+
+  <!-- ==================== 预算设置弹窗 ==================== -->
+  <view class="budget-dialog" wx:if="{{showBudgetInput}}">
+    <view class="bd-mask" bindtap="cancelBudget"></view>
+    <view class="bd-card">
+      <view class="bd-title">设置月度预算 💰</view>
+      <input class="bd-input" type="digit" placeholder="输入预算金额（元）" value="{{budgetInput}}" bindinput="onBudgetInput" />
+      <view class="bd-btns">
+        <view class="bd-cancel" bindtap="cancelBudget">取消</view>
+        <view class="bd-confirm" bindtap="saveBudget">确认设置</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 账单列表 ==================== -->
+  <view class="bill-list">
+    <view class="bill-item" wx:for="{{list}}" wx:key="_id">
+      <view class="bi-left">
+        <view class="bi-cat" style="background: {{item.categoryColor}};">{{item.categoryIcon}}</view>
+        <view class="bi-info">
+          <view class="bi-title">{{item.title}}</view>
+          <view class="bi-meta">
+            <text class="bi-owner {{item.ownerClass}}">{{item.ownerLabel}}</text>
+            <text>· {{item.category}} · {{item.typeLabel}}</text>
+          </view>
+          <view wx:if="{{item.expenseDate}}" class="bi-date">{{item.expenseDate}}</view>
+          <view wx:if="{{item.note}}" class="bi-note">{{item.note}}</view>
+        </view>
+      </view>
+      <view class="bi-right">
+        <text class="bi-amount {{item.type === 'income' ? 'green' : 'red'}}">{{item.sign}}¥{{item.moneyText}}</text>
+        <view wx:if="{{item.isMine}}" class="bi-del" data-id="{{item._id}}" catchtap="deleteItem">删除</view>
+      </view>
+    </view>
+    <view wx:if="{{list.length === 0}}" class="empty-hint">还没有记录，记一笔开始吧 💕</view>
+  </view>
+
+  <view class="bottom-space"></view>
+</view>

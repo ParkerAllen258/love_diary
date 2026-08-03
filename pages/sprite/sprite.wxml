@@ -1,0 +1,55 @@
+<view class="page">
+
+  <view class="header">
+    <view class="header-left">
+      <view class="sprite-avatar">🤖</view>
+      <view class="header-info">
+        <view class="header-name">恋爱小精灵</view>
+        <view class="header-status">{{apiKey ? '🟢 AI已连接' : '🟡 本地精灵模式'}}</view>
+      </view>
+    </view>
+    <view class="header-actions">
+      <view class="header-btn" bindtap="setApiKey">
+        <text>{{apiKey ? '🔑 换Key' : '🔑 配置Key'}}</text>
+      </view>
+      <view class="header-btn" bindtap="clearChat">
+        <text>🗑</text>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view class="chat-box" scroll-y scroll-into-view="{{scrollToView}}" scroll-with-animation>
+    <view
+      wx:for="{{list}}"
+      wx:key="*this"
+      class="msg-row {{item.type === 'user' ? 'msg-right' : 'msg-left'}}"
+      id="msg-{{index}}"
+    >
+      <view class="msg-avatar" wx:if="{{item.type === 'ai'}}">🤖</view>
+      <view class="msg-bubble {{item.type === 'user' ? 'bubble-user' : 'bubble-ai'}}">
+        <text wx:if="{{!item.loading}}">{{item.content}}</text>
+        <view wx:else class="typing-dots">
+          <view class="dot"></view>
+          <view class="dot"></view>
+          <view class="dot"></view>
+        </view>
+      </view>
+      <view class="msg-avatar" wx:if="{{item.type === 'user'}}">😊</view>
+    </view>
+
+    <view class="chat-bottom-pad"></view>
+  </scroll-view>
+
+  <view class="input-bar">
+    <input
+      class="chat-input"
+      placeholder="和小精灵聊天..."
+      value="{{text}}"
+      bindinput="onInput"
+      confirm-type="send"
+      bindconfirm="send"
+    />
+    <button class="send-btn" bindtap="send" disabled="{{loading}}">{{loading ? '...' : '发送'}}</button>
+  </view>
+
+</view>

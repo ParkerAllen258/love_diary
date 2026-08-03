@@ -1,0 +1,145 @@
+<view class="page">
+
+<!-- 未绑定 -->
+<view wx:if="{{!hasCouple}}">
+
+  <!-- 顶部装饰 -->
+  <view class="top-banner">
+    <view class="banner-deco"></view>
+    <view class="banner-content">
+      <text class="banner-title">💕 情侣空间</text>
+      <text class="banner-sub">绑定你的另一半，开始甜蜜之旅</text>
+    </view>
+  </view>
+
+  <!-- 我的邀请码 -->
+  <view class="card">
+    <view class="card-header">
+      <text class="card-icon">🎫</text>
+      <text class="card-title">我的邀请码</text>
+    </view>
+    <view class="code-box" bindtap="copyCode">
+      <text class="code-text">{{myCode}}</text>
+      <view class="copy-badge">
+        <text>复制</text>
+      </view>
+    </view>
+    <text class="code-tip">把邀请码发给你的另一半</text>
+  </view>
+
+  <!-- 输入对方邀请码 -->
+  <view class="card">
+    <view class="card-header">
+      <text class="card-icon">💌</text>
+      <text class="card-title">绑定情侣</text>
+    </view>
+    <input
+      class="invite-input"
+      placeholder="输入对方邀请码"
+      placeholder-class="input-placeholder"
+      bindinput="onInput"
+      value="{{inputCode}}"
+      maxlength="10"
+    />
+    <button class="bind-btn" bindtap="sendRequest">发送绑定请求</button>
+  </view>
+
+  <!-- 我发出的请求 -->
+  <view class="card" wx:if="{{mySentRequests.length > 0}}">
+    <view class="card-header">
+      <text class="card-icon">📤</text>
+      <text class="card-title">我发出的请求</text>
+    </view>
+    <view class="req-card sent" wx:for="{{mySentRequests}}" wx:key="_id">
+      <view class="req-card-top">
+        <view class="req-card-avatar sent-avatar">⏳</view>
+        <view class="req-card-meta">
+          <text class="req-card-code">{{item.to}}</text>
+          <text class="req-card-hint">已发送绑定请求</text>
+        </view>
+        <view class="req-card-badge">等待中</view>
+      </view>
+      <view class="req-card-footer">
+        <text class="req-card-time">等待对方同意...</text>
+        <view class="req-card-action cancel" data-item="{{item}}" bindtap="cancelMyRequest">取消请求</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 收到的请求 -->
+  <view class="card" wx:if="{{requestList.length > 0}}">
+    <view class="card-header">
+      <text class="card-icon">📥</text>
+      <text class="card-title">收到的请求</text>
+    </view>
+    <view class="req-card received" wx:for="{{requestList}}" wx:key="_id">
+      <view class="req-card-top">
+        <view class="req-card-avatar received-avatar">💌</view>
+        <view class="req-card-meta">
+          <text class="req-card-code">{{item.from}}</text>
+          <text class="req-card-hint">想和你绑定情侣关系</text>
+        </view>
+        <view class="req-card-badge new">新请求</view>
+      </view>
+      <view class="req-card-footer">
+        <text class="req-card-time">来自对方的绑定邀请</text>
+        <view class="req-card-actions">
+          <view class="req-card-action reject" data-item="{{item}}" bindtap="rejectRequest">拒绝</view>
+          <view class="req-card-action agree" data-item="{{item}}" bindtap="agreeRequest">同意</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{requestList.length === 0 && mySentRequests.length === 0}}">
+    <text class="empty-heart">💕</text>
+    <text class="empty-text">还没有收到请求</text>
+    <text class="empty-sub">发送你的邀请码给另一半吧~</text>
+  </view>
+
+</view>
+
+<!-- 已绑定 -->
+<view wx:else class="bound">
+
+  <!-- 情侣信息卡片 -->
+  <view class="couple-card">
+    <view class="couple-header">
+      <text class="couple-badge">❤️ 已绑定</text>
+    </view>
+    <view class="couple-bodies">
+      <!-- 我 -->
+      <view class="couple-person">
+        <view class="couple-avatar-wrap me">
+          <image class="couple-avatar" src="{{myAvatar || defaultAvatar}}" mode="aspectFill"></image>
+        </view>
+        <text class="couple-name">{{myName || '我'}}</text>
+        <text class="couple-code">{{myCode}}</text>
+      </view>
+      <!-- 连接线 -->
+      <view class="couple-link">
+        <view class="link-line"></view>
+        <text class="link-heart">❤️</text>
+        <view class="link-line"></view>
+      </view>
+      <!-- 对方 -->
+      <view class="couple-person">
+        <view class="couple-avatar-wrap partner">
+          <image class="couple-avatar" src="{{partnerAvatar || defaultAvatar}}" mode="aspectFill"></image>
+        </view>
+        <text class="couple-name">{{partnerName || '另一半'}}</text>
+        <text class="couple-code">{{partnerCode}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 解绑按钮 -->
+  <view class="unbind-area">
+    <text class="unbind-tip">解绑后双方将立即停止共享；共同数据保留30天，期间重新绑定可恢复，之后永久删除。</text>
+    <button class="unbind-btn" bindtap="unbind">解除绑定</button>
+  </view>
+
+</view>
+
+</view>
