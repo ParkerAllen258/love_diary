@@ -1,6 +1,7 @@
 const db = wx.cloud.database()
-const _ = db.command
 const { callRelationship, getCoupleId } = require('../../utils/relationship')
+const { callSharedData, resolveFileUrls } = require('../../utils/sharedData')
+const { waitForAuth } = require('../../utils/auth')
 
 Page({
 
@@ -13,6 +14,7 @@ Page({
     list: [],
 
     myAvatar: '',
+    myAvatarFileID: '',
 
     defaultAvatar: 'https://dummyimage.com/200x200/ffb6c1/ffffff',
 
@@ -28,20 +30,23 @@ Page({
 
   },
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
 
     // 加载当前用户信息
     const myCode = wx.getStorageSync('myCode') || ''
     const myName = wx.getStorageSync('myName') || '恋人'
-    const myAvatar = wx.getStorageSync('myAvatar') || wx.getStorageSync('boyAvatar') || wx.getStorageSync('girlAvatar') || ''
+    const myAvatarFileID = wx.getStorageSync('myAvatarFileID') || wx.getStorageSync('boyAvatarFileID') || wx.getStorageSync('girlAvatarFileID') || wx.getStorageSync('myAvatar') || ''
+    const myAvatar = wx.getStorageSync('myAvatar') || myAvatarFileID
 
-    this.setData({ myCode, myName, myAvatar })
+    this.setData({ myCode, myName, myAvatar, myAvatarFileID })
 
     this.getList()
 
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
 
     if (this.data.myCode) {
 
@@ -98,8 +103,9 @@ Page({
       filePath,
       success: res => {
         const fileID = res.fileID
-        this.setData({ myAvatar: fileID })
+        this.setData({ myAvatar: fileID, myAvatarFileID: fileID })
         wx.setStorageSync('myAvatar', fileID)
+        wx.setStorageSync('myAvatarFileID', fileID)
         // 同步到云数据库 couple 集合，让伴侣也能看到
         this.syncAvatarToCloud(fileID)
         wx.hideLoading()
@@ -225,7 +231,7 @@ Page({
       return
     }
 
-    const { content, images, myCode, myName, myAvatar } = this.data
+    const { content, images, myCode, myName, myAvatar, myAvatarFileID } = this.data
 
     if (!content && images.length === 0) {
 
@@ -250,7 +256,7 @@ Page({
 
           authorName: myName,      // 发布者昵称
 
-          authorAvatar: myAvatar,  // 发布者头像
+          authorAvatar: myAvatarFileID || myAvatar,
 
           coupleId: getCoupleId(),
 
@@ -258,7 +264,7 @@ Page({
 
           likes: 0,
 
-          likedBy: [],
+          likedByOpenids: [],
 
           comments: [],
 
@@ -315,25 +321,34 @@ Page({
       .orderBy('createTime', 'desc')
       .limit(100)
       .get()
-      .then(res => {
+      .then(async res => {
 
-        const myCode = this.data.myCode
+        const myOpenid = wx.getStorageSync('openid') || ''
+        const rows = res.data || []
+        const fileIDs = rows.flatMap(item => (Array.isArray(item.images) ? item.images : []).concat(item.authorAvatar || []))
+        const urls = await resolveFileUrls(fileIDs)
 
-        const list = (res.data || []).map(item => {
+        const list = rows.map(item => {
 
-          const images = Array.isArray(item.images) ? item.images : []
+          const imageFileIDs = Array.isArray(item.images) ? item.images : []
+          const images = imageFileIDs.map(fileID => urls[fileID]).filter(Boolean)
 
-          const comments = Array.isArray(item.comments) ? item.comments : []
+          const comments = (Array.isArray(item.comments) ? item.comments : []).map(comment => ({
+            ...comment,
+            isMine: comment.authorOpenid === myOpenid
+          }))
 
           const imageCount = Math.min(images.length, 9)
-          const isMine = item.authorCode === myCode
+          const isMine = item.authorOpenid === myOpenid
 
           return {
             ...item,
             images,
+            imageFileIDs,
+            authorAvatar: urls[item.authorAvatar] || '',
             comments,
             imageCount,
-            isLiked: item.likedBy && item.likedBy.indexOf(myCode) !== -1,
+            isLiked: Array.isArray(item.likedByOpenids) && item.likedByOpenids.includes(myOpenid),
             isMine: isMine,
             authorLabel: isMine ? '我' : 'TA'
           }
@@ -359,51 +374,9 @@ Page({
 
     if (!item) return
 
-    const myCode = this.data.myCode
-
-    const likedBy = item.likedBy || []
-
-    const isLiked = likedBy.indexOf(myCode) !== -1
-
-    if (isLiked) {
-
-      // 取消点赞
-      db.collection('moment')
-        .doc(id)
-        .update({
-
-          data: {
-
-            likes: _.inc(-1),
-
-            likedBy: _.pull(myCode)
-
-          }
-
-        })
-        .then(() => this.getList())
-        .catch(() => {})
-
-    } else {
-
-      // 点赞
-      db.collection('moment')
-        .doc(id)
-        .update({
-
-          data: {
-
-            likes: _.inc(1),
-
-            likedBy: _.push(myCode)
-
-          }
-
-        })
-        .then(() => this.getList())
-        .catch(() => {})
-
-    }
+    callSharedData('toggleMomentLike', { id })
+      .then(() => this.getList())
+      .catch(err => wx.showToast({ title: err.message || '操作失败', icon: 'none' }))
 
   },
 
@@ -415,6 +388,11 @@ Page({
 
     const item = this.data.list.find(i => i._id === id)
 
+    if (!item || !item.isMine) {
+      wx.showToast({ title: '只能删除自己的动态', icon: 'none' })
+      return
+    }
+
     wx.showModal({
 
       title: '提示',
@@ -425,11 +403,7 @@ Page({
 
         if (res.confirm) {
 
-          const removeFromDb = () => {
-
-            db.collection('moment')
-              .doc(id)
-              .remove()
+          callSharedData('deleteOwnedRecord', { collection: 'moment', id })
               .then(() => {
 
                 wx.showToast({ title: '已删除' })
@@ -437,21 +411,7 @@ Page({
                 this.getList()
 
               })
-
-          }
-
-          // 删除云存储中的所有图片
-          if (item && item.images && item.images.length > 0) {
-
-            wx.cloud.deleteFile({ fileList: item.images })
-              .then(removeFromDb)
-              .catch(removeFromDb)
-
-          } else {
-
-            removeFromDb()
-
-          }
+              .catch(err => wx.showToast({ title: err.message || '删除失败', icon: 'none' }))
 
         }
 
@@ -512,7 +472,7 @@ Page({
 
   // 提交评论
   submitComment() {
-    const { commentContent, commentTargetId, myName, myCode } = this.data
+    const { commentContent, commentTargetId } = this.data
 
     if (!commentContent.trim()) {
       wx.showToast({ title: '请输入评论内容', icon: 'none' })
@@ -521,20 +481,10 @@ Page({
 
     wx.showLoading({ title: '发送中...' })
 
-    const comment = {
-      authorName: myName || '匿名',
-      authorCode: myCode,
-      content: commentContent.trim(),
-      time: this.formatTime(new Date())
-    }
-
-    db.collection('moment')
-      .doc(commentTargetId)
-      .update({
-        data: {
-          comments: _.push(comment)
-        }
-      })
+    callSharedData('addMomentComment', {
+      id: commentTargetId,
+      content: commentContent.trim()
+    })
       .then(() => {
         wx.hideLoading()
         wx.showToast({ title: '评论成功', icon: 'success' })
@@ -547,6 +497,14 @@ Page({
 
         wx.showToast({ title: '评论失败', icon: 'none' })
       })
+  },
+
+  deleteComment(e) {
+    const id = e.currentTarget.dataset.id
+    const commentId = e.currentTarget.dataset.commentId
+    callSharedData('deleteMomentComment', { id, commentId })
+      .then(() => this.getList())
+      .catch(err => wx.showToast({ title: err.message || '删除失败', icon: 'none' }))
   },
 
   // ==================== 时间格式化 ====================

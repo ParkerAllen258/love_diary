@@ -1,5 +1,7 @@
 const db = wx.cloud.database()
 const { getCoupleId } = require('../../utils/relationship')
+const { callSharedData } = require('../../utils/sharedData')
+const { waitForAuth } = require('../../utils/auth')
 
 Page({
 
@@ -17,7 +19,8 @@ Page({
 
   },
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
 
     if (!wx.getStorageSync('hasCouple')) {
 
@@ -38,7 +41,8 @@ Page({
 
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
 
     if (wx.getStorageSync('hasCouple')) {
 
@@ -166,11 +170,11 @@ Page({
       .get()
       .then(res => {
 
-        const myCode = this.data.myCode
+        const myOpenid = wx.getStorageSync('openid') || ''
 
         const list = res.data.map(item => {
 
-          item.isMine = item.authorCode === myCode
+          item.isMine = item.authorOpenid === myOpenid
 
           return item
 
@@ -209,9 +213,7 @@ Page({
 
         if (!res.confirm) return
 
-        db.collection('letter')
-          .doc(id)
-          .remove()
+        callSharedData('deleteOwnedRecord', { collection: 'letter', id })
           .then(() => {
 
             wx.showToast({ title: '已删除' })

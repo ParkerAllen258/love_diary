@@ -383,9 +383,9 @@
     <block wx:if="{{dayDetailRecords.length > 0}}">
       <view class="day-record-item" wx:for="{{dayDetailRecords}}" wx:key="_id">
         <view class="day-record-author">
-          <text class="day-record-avatar-emoji">{{item.authorCode === myCode ? '😊' : '😍'}}</text>
+          <text class="day-record-avatar-emoji">{{item.authorOpenid === myOpenid ? '😊' : '😍'}}</text>
           <text class="day-record-name">{{item.authorName || 'TA'}}</text>
-          <text class="day-record-tag" wx:if="{{item.authorCode === myCode}}">我</text>
+          <text class="day-record-tag" wx:if="{{item.authorOpenid === myOpenid}}">我</text>
         </view>
         <view class="day-record-info">
           <text class="day-record-status">{{item.statusLabel}}</text>

@@ -1,5 +1,7 @@
 ﻿const db = wx.cloud.database()
 const { getCoupleId } = require('../../utils/relationship')
+const { callSharedData } = require('../../utils/sharedData')
+const { waitForAuth } = require('../../utils/auth')
 
 const CATEGORY_LIST = [
   { name: '重要事项', icon: '⭐', color: '#f59e0b' },
@@ -71,7 +73,8 @@ Page({
 
   allListCache: [],
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
     const myCode = wx.getStorageSync('myCode') || ''
     const myName = wx.getStorageSync('myName') || '我'
     const hasCouple = !!wx.getStorageSync('hasCouple')
@@ -79,7 +82,8 @@ Page({
     this.loadList()
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
     if (wx.getStorageSync('hasCouple')) {
       this.setData({ hasCouple: true })
     }
@@ -278,19 +282,18 @@ Page({
 
     wx.showLoading({ title: '更新中...' })
 
-    db.collection('note')
-      .doc(editingId)
-      .update({
-        data: {
+    callSharedData('updateSharedRecord', {
+      collection: 'note',
+      id: editingId,
+      fields: {
           title: title.trim(),
           content: content.trim(),
           category: cat.name,
           categoryIcon: cat.icon,
           categoryColor: cat.color,
-          isPinned,
-          updateTime: Date.now()
-        }
-      })
+          isPinned
+      }
+    })
       .then(() => {
         wx.hideLoading()
         wx.showToast({ title: '笔记已更新 ✨' })
@@ -310,11 +313,9 @@ Page({
     const pinned = e.currentTarget.dataset.pinned
     const newPinned = !pinned
 
-    db.collection('note')
-      .doc(id)
-      .update({
-        data: { isPinned: newPinned, updateTime: Date.now() }
-      })
+    callSharedData('updateSharedRecord', {
+      collection: 'note', id, fields: { isPinned: newPinned }
+    })
       .then(() => {
         wx.showToast({ title: newPinned ? '已标记为重要 ⭐' : '已取消重要标记', icon: 'none' })
         this.loadList()
@@ -333,9 +334,7 @@ Page({
       confirmColor: '#ef4444',
       success: res => {
         if (!res.confirm) return
-        db.collection('note')
-          .doc(id)
-          .remove()
+        callSharedData('deleteOwnedRecord', { collection: 'note', id })
           .then(() => {
             wx.showToast({ title: '已删除' })
             this.loadList()

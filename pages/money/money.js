@@ -1,5 +1,7 @@
 const db = wx.cloud.database()
 const { getCoupleId } = require('../../utils/relationship')
+const { callSharedData } = require('../../utils/sharedData')
+const { waitForAuth } = require('../../utils/auth')
 
 var EXPENSE_CATS = [
   { name: '餐饮', icon: '🍜', color: '#ffa94d' },
@@ -80,7 +82,8 @@ Page({
 
   allCache: [],
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
     var mc = wx.getStorageSync('myCode') || ''
     var has = !!wx.getStorageSync('hasCouple')
     var mn = wx.getStorageSync('myName') || wx.getStorageSync('boyName') || wx.getStorageSync('girlName') || '我'
@@ -98,7 +101,8 @@ Page({
     if (has) this.loadData()
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
     if (wx.getStorageSync('hasCouple')) {
       var mn = wx.getStorageSync('myName') || '我'
       var pn = wx.getStorageSync('partnerName') || 'Ta'
@@ -118,7 +122,7 @@ Page({
   },
 
   applyData(all) {
-    var mc = this.data.myCode
+    var myOpenid = wx.getStorageSync('openid') || ''
     var tab = this.data.tab
     var reportMode = this.data.reportMode
     var selYear = this.data.selectedYear
@@ -134,8 +138,8 @@ Page({
 
     // 筛选列表
     var filtered = all
-    if (tab === 'mine') filtered = all.filter(function (i) { return i.authorCode === mc })
-    else if (tab === 'partner') filtered = all.filter(function (i) { return i.authorCode && i.authorCode !== mc })
+    if (tab === 'mine') filtered = all.filter(function (i) { return i.authorOpenid === myOpenid })
+    else if (tab === 'partner') filtered = all.filter(function (i) { return i.authorOpenid && i.authorOpenid !== myOpenid })
 
     // 统计（基于筛选后）
     var stats = this.calcStats(tab === 'all' ? all : filtered)
@@ -143,7 +147,7 @@ Page({
     var catStats = this.buildCatStats(tab === 'all' ? all : filtered)
     // 列表模式：yearStats 跟随 tab 筛选；报表模式：yearStats 也跟随报表筛选
     var yearStatsForDisplay = tab === 'all' ? this.calcStats(yearData) : this.calcStats(yearData.filter(function (i) {
-      return tab === 'mine' ? i.authorCode === mc : (i.authorCode && i.authorCode !== mc)
+      return tab === 'mine' ? i.authorOpenid === myOpenid : (i.authorOpenid && i.authorOpenid !== myOpenid)
     }))
     var yearStats = this.calcStats(yearData)
 
@@ -154,7 +158,7 @@ Page({
 
     // 报表模式：覆盖饼图/占比/统计，全部跟随 reportMode 筛选
     if (this.data.viewMode === 'report') {
-      var reportData = reportMode === 'all' ? all : (reportMode === 'mine' ? all.filter(function (i) { return i.authorCode === mc }) : all.filter(function (i) { return i.authorCode && i.authorCode !== mc }))
+      var reportData = reportMode === 'all' ? all : (reportMode === 'mine' ? all.filter(function (i) { return i.authorOpenid === myOpenid }) : all.filter(function (i) { return i.authorOpenid && i.authorOpenid !== myOpenid }))
       stats = this.calcStats(reportData)
       monthStats = this.buildMonthStats(reportData)
       catStats = this.buildCatStats(reportData)
@@ -173,7 +177,7 @@ Page({
     // 预算计算（仅当月且有预算时）
     var budgetData = this.calcBudget(yearData)
 
-    var list = filtered.map(function (item) { return decorateItem(item, mc, this.data.partnerName) }.bind(this))
+    var list = filtered.map(function (item) { return decorateItem(item, myOpenid, this.data.partnerName) }.bind(this))
     this.setData({
       list: list, stats: stats, monthStats: monthStats, catStats: catStats,
       yearStats: yearStatsForDisplay, pieStyle: pieData.style,
@@ -186,15 +190,15 @@ Page({
 
   calcStats(list) {
     var te = 0, ti = 0, me = 0, mi = 0, pe = 0, pi = 0
-    var mc = this.data.myCode
+    var myOpenid = wx.getStorageSync('openid') || ''
     list.forEach(function (item) {
       var m = Number(item.money) || 0
       if (item.type === 'income') {
         ti += m
-        if (item.authorCode === mc) mi += m; else pi += m
+        if (item.authorOpenid === myOpenid) mi += m; else pi += m
       } else {
         te += m
-        if (item.authorCode === mc) me += m; else pe += m
+        if (item.authorOpenid === myOpenid) me += m; else pe += m
       }
     })
     return {
@@ -285,10 +289,10 @@ Page({
 
   buildRatioData(list) {
     var me = 0, partner = 0
-    var mc = this.data.myCode
+    var myOpenid = wx.getStorageSync('openid') || ''
     list.forEach(function (item) {
       var m = Number(item.money) || 0
-      if (item.authorCode === mc) me += m
+      if (item.authorOpenid === myOpenid) me += m
       else partner += m
     })
     var total = me + partner
@@ -438,6 +442,7 @@ Page({
         note: (that.data.note || '').trim(),
         expenseDate: that.data.expenseDate || todayStr(),
         authorCode: mc,
+        authorOpenid: wx.getStorageSync('openid') || '',
         authorName: authorName,
         coupleId: cp,
         createTime: Date.now()
@@ -468,16 +473,18 @@ Page({
       title: '提示', content: '确定删除这条记录吗？',
       success: function (res) {
         if (!res.confirm) return
-        db.collection('money').doc(id).remove().then(function () {
+        callSharedData('deleteOwnedRecord', { collection: 'money', id: id }).then(function () {
           wx.showToast({ title: '已删除' }); that.loadData()
+        }).catch(function (err) {
+          wx.showToast({ title: err.message || '删除失败', icon: 'none' })
         })
       }
     })
   }
 })
 
-function decorateItem(item, myCode, partnerName) {
-  var isMine = item.authorCode === myCode
+function decorateItem(item, myOpenid, partnerName) {
+  var isMine = item.authorOpenid === myOpenid
   var cats = item.type === 'income' ? INCOME_CATS : EXPENSE_CATS
   var cat = cats.find(function (c) { return c.name === item.category }) || cats[cats.length - 1]
   var sign = item.type === 'income' ? '+' : '-'

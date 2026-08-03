@@ -1,5 +1,6 @@
 ﻿const db = wx.cloud.database()
-const { callRelationship, getCoupleId } = require('../../utils/relationship')
+const { callRelationship, bootstrapRelationship, getCoupleId } = require('../../utils/relationship')
+const { waitForAuth } = require('../../utils/auth')
 
 Page({
 
@@ -51,7 +52,8 @@ Page({
 
   },
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
 
     // 加载头像
     this.loadAvatars()
@@ -69,7 +71,8 @@ Page({
 
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
     // 恢复时钟（onHide 中已清除）
     if (!this._clockTimer) {
       this.updateTime()
@@ -149,10 +152,9 @@ Page({
   // ==================== 陪伴小组件 ====================
 
   loadCompWidget() {
-    var myCode = wx.getStorageSync('myCode')
-    var partnerCode = wx.getStorageSync('partnerCode')
+    var myOpenid = wx.getStorageSync('openid') || ''
     const coupleId = getCoupleId()
-    if (!myCode || !partnerCode || !coupleId) {
+    if (!myOpenid || !coupleId) {
       if (!coupleId) wx.showToast({ title: '请先绑定情侣', icon: 'none' })
       this.setData({ 'compWidget.show': false })
       return
@@ -163,16 +165,16 @@ Page({
     // 同时查今日签到 + 恋爱日期
     db.collection('companion_records')
       .where({ coupleId, date: today })
-      .field({ authorCode: true, status: true })
+      .field({ authorOpenid: true, status: true })
       .limit(20)
       .get()
       .then(function (res) {
         var records = res.data || []
         var authors = {}
         var statuses = {}
-        records.forEach(function (r) { authors[r.authorCode] = true; statuses[r.status] = true })
-        var mySigned = !!authors[myCode]
-        var partnerSigned = Object.keys(authors).some(function (k) { return k !== myCode })
+        records.forEach(function (r) { authors[r.authorOpenid] = true; statuses[r.status] = true })
+        var mySigned = !!authors[myOpenid]
+        var partnerSigned = Object.keys(authors).some(function (k) { return k !== myOpenid })
         var bothSigned = mySigned && partnerSigned
         var isApart = Object.keys(statuses).length === 1 && statuses['apart']
 
@@ -275,21 +277,14 @@ Page({
 
   // 从云端同步头像（双方都能看到对方的更换）
   syncAvatarsFromCloud() {
-    const coupleId = getCoupleId()
-    if (!coupleId) return
-
-    db.collection('couple')
-      .doc(coupleId)
-      .get()
-      .then(res => {
-        const couple = res.data
-        if (!couple) return
-        const myRole = couple.user1Openid === wx.getStorageSync('openid') ? 'user1' : 'user2'
-        const boyAvatar = couple.boyAvatar || ''
-        const girlAvatar = couple.girlAvatar || ''
-        const boyName = couple.user1Name || 'Boy'
-        const girlName = couple.user2Name || 'Girl'
-        const loveDate = couple.loveDate || ''
+    if (!getCoupleId()) return
+    bootstrapRelationship().then(() => {
+        const myRole = wx.getStorageSync('myRole') || 'user1'
+        const boyAvatar = wx.getStorageSync('boyAvatar') || ''
+        const girlAvatar = wx.getStorageSync('girlAvatar') || ''
+        const boyName = wx.getStorageSync('boyName') || 'Boy'
+        const girlName = wx.getStorageSync('girlName') || 'Girl'
+        const loveDate = wx.getStorageSync('loveDate') || ''
 
         var loveDays = 0
         if (loveDate) {
@@ -297,7 +292,7 @@ Page({
           if (loveDays < 0) loveDays = 0
         }
 
-        // 直接使用 cloud:// 文件ID，image组件原生支持
+        // 使用关系初始化时生成的临时显示地址
         this.setData({ boyAvatar, girlAvatar, boyName, girlName, myRole, loveDays, loveDate })
 
         // 同步到本地缓存，供其他页面使用
@@ -310,18 +305,7 @@ Page({
         wx.setStorageSync('loveDate', loveDate)
         wx.setStorageSync('myName', myRole === 'user1' ? boyName : girlName)
         wx.setStorageSync('partnerName', myRole === 'user1' ? girlName : boyName)
-        wx.setStorageSync('partnerCode', myRole === 'user1' ? couple.user2 : couple.user1)
-
-        // 如果 avatar 为空，尝试从本地缓存回填
-        if (!boyAvatar) {
-          var cached = wx.getStorageSync('boyAvatar') || ''
-          if (cached) this.setData({ boyAvatar: cached })
-        }
-        if (!girlAvatar) {
-          var cached = wx.getStorageSync('girlAvatar') || ''
-          if (cached) this.setData({ girlAvatar: cached })
-        }
-      })
+      }).catch(() => {})
   },
 
   // ========== 点击头像 → 弹出选择面板 ==========
@@ -423,6 +407,8 @@ Page({
 
         // 2. 保存到本地缓存
         wx.setStorageSync(key, fileID)
+        wx.setStorageSync(key + 'FileID', fileID)
+        wx.setStorageSync('myAvatarFileID', fileID)
 
         // 3. 同步到云数据库（双方可见）
         this.syncToCloudDB(key, fileID)
@@ -603,7 +589,7 @@ Page({
 
   loadCourseWidget() {
     const helper = require('../../utils/scheduleHelper')
-    const myCode = wx.getStorageSync('myCode') || ''
+    const myOpenid = wx.getStorageSync('openid') || ''
     const coupleId = getCoupleId()
     if (!coupleId) {
       wx.showToast({ title: '请先绑定情侣', icon: 'none' })
@@ -615,7 +601,7 @@ Page({
       .where({
         type: 'course',
         coupleId,
-        authorCode: myCode
+        authorOpenid: myOpenid
       })
       .limit(100)
       .get()

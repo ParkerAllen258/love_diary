@@ -19,6 +19,14 @@ const COUPLE_MUTABLE_FIELDS = new Set([
   'user1Status', 'user1StatusTime', 'user2Status', 'user2StatusTime',
   'statAdjustment'
 ])
+const PERSONAL_FIELDS = new Set([
+  'boyAvatar', 'girlAvatar', 'user1Name', 'user2Name',
+  'user1Status', 'user1StatusTime', 'user2Status', 'user2StatusTime'
+])
+const ROLE_FIELDS = Object.freeze({
+  user1: new Set(['boyAvatar', 'user1Name', 'user1Status', 'user1StatusTime']),
+  user2: new Set(['girlAvatar', 'user2Name', 'user2Status', 'user2StatusTime'])
+})
 
 function codedError(code) {
   const error = new Error(code)
@@ -285,6 +293,14 @@ class RelationshipService {
     if (!validateCoupleFields(fields)) throw codedError('INVALID_PAYLOAD')
     const user = await this.requireUser(openid)
     if (!isBound(user)) throw codedError('RELATIONSHIP_NOT_FOUND')
+    const couple = await this.repository.getCouple(user.coupleId)
+    if (!couple || couple.status !== 'active' || !couple.memberOpenids.includes(openid)) {
+      throw codedError('RELATIONSHIP_NOT_FOUND')
+    }
+    const role = couple.user1Openid === openid ? 'user1' : couple.user2Openid === openid ? 'user2' : ''
+    if (!role || Object.keys(fields).some(key => PERSONAL_FIELDS.has(key) && !ROLE_FIELDS[role].has(key))) {
+      throw codedError('FORBIDDEN')
+    }
     if (typeof this.repository.updateCoupleFields !== 'function') throw codedError('INTERNAL_ERROR')
     return this.repository.updateCoupleFields({
       openid,

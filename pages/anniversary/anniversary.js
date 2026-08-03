@@ -1,6 +1,7 @@
 const db = wx.cloud.database()
 const calendar = require('../../utils/calendar')
 const { callRelationship, getCoupleId } = require('../../utils/relationship')
+const { waitForAuth } = require('../../utils/auth')
 
 Page({
 
@@ -34,7 +35,8 @@ Page({
 
   },
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
 
     this.setGreeting()
 
@@ -42,7 +44,8 @@ Page({
 
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
 
     this.loadMilestones()
 
@@ -90,7 +93,7 @@ Page({
 
     const coupleId = getCoupleId()
     if (!coupleId) return
-    const myCode = wx.getStorageSync('myCode')
+    const myOpenid = wx.getStorageSync('openid') || ''
 
     db.collection('couple')
       .doc(coupleId)
@@ -136,7 +139,7 @@ Page({
 
         this.setData({
 
-          milestones: this.buildMilestones(dates, myCode, couple)
+          milestones: this.buildMilestones(dates, myOpenid, couple)
 
         })
 
@@ -149,9 +152,9 @@ Page({
 
   },
 
-  buildMilestones(dates, myCode, couple) {
+  buildMilestones(dates, myOpenid, couple) {
 
-    const isUser1 = couple && couple.user1 === myCode
+    const isUser1 = couple && couple.user1Openid === myOpenid
 
     const myBirthday = isUser1 ? dates.user1Birthday : dates.user2Birthday
 

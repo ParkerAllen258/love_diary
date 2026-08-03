@@ -3,6 +3,7 @@ const {
   bootstrapRelationship,
   errorMessage
 } = require('../../utils/relationship')
+const { waitForAuth } = require('../../utils/auth')
 
 function displayRequest(request) {
   return {
@@ -27,12 +28,14 @@ Page({
     defaultAvatar: 'https://dummyimage.com/200x200/ffb6c1/ffffff'
   },
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
     this.initUser()
     this.startTimer()
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
     this.refreshStatus()
     if (!this.timer) this.startTimer()
   },

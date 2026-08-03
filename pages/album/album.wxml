@@ -74,6 +74,7 @@
             catchtap="showEditAlbum"
           >编辑</view>
           <view
+            wx:if="{{item.isMine}}"
             class="album-act del"
             data-id="{{item._id}}"
             data-name="{{item.name}}"
@@ -136,6 +137,7 @@
         ></image>
         <view class="photo-mask">
           <view
+            wx:if="{{item.isMine}}"
             class="photo-del"
             data-id="{{item._id}}"
             catchtap="deletePhoto"

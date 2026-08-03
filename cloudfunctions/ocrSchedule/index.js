@@ -1,5 +1,6 @@
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+const { handleOcr } = require('./lib/handler')
 
 const WEEK_KEYWORDS = [
   '周一', '周二', '周三', '周四', '周五', '周六', '周日',
@@ -588,67 +589,20 @@ function mergeOCRBlocks(lines) {
   return merged
 }
 
-exports.main = async function (event) {
-  var fileID = event.fileID
-
-  if (!fileID) {
-    return { ok: false, msg: '缺少文件ID', courses: [] }
-  }
-
-  try {
-    var ocrResult = await cloud.openapi.ocr.printedText({
-      type: 'photo',
-      imgUrl: fileID
-    })
-
-    if (ocrResult && ocrResult.items && ocrResult.items.length > 0) {
-      // 兼容多种 text 属性名
-      var getItemText = function (it) {
-        if (typeof it === 'string') return it
-        return it.text || it.content || it.value || it.itemstring || ''
-      }
-      var text = ocrResult.items.map(getItemText).join('\n')
-      var courses = parseOcrText(ocrResult.items, text)
-
-      var hasPosData = ocrResult.items.some(function (it) {
-        return it.pos && it.pos.left_top
+exports.main = function (event) {
+  var openid = cloud.getWXContext().OPENID
+  return handleOcr({
+    fileID: event && event.fileID,
+    openid: openid,
+    recognize: function (fileID) {
+      return cloud.openapi.ocr.printedText({
+        type: 'photo',
+        imgUrl: fileID
       })
-      var sampleItems = ocrResult.items.slice(0, 5)
-      var debugInfo = {
-        itemCount: ocrResult.items.length,
-        hasPosData: hasPosData,
-        ocrKeys: sampleItems.length > 0 ? Object.keys(sampleItems[0]).join(',') : '',
-        sampleJson: JSON.stringify(sampleItems).substring(0, 600),
-        firstItems: sampleItems.map(function (it) {
-          return { text: getItemText(it), hasPos: !!(it.pos && it.pos.left_top) }
-        })
-      }
-
-      if (courses.length > 0) {
-        return { ok: true, courses: courses, rawText: text, debug: debugInfo, version: 'v3-debug' }
-      }
-
-      return {
-        ok: false,
-        msg: '未能从图片中识别出课程信息，请确保图片清晰且包含课程表内容',
-        courses: [],
-        rawText: text,
-        debug: debugInfo,
-        version: 'v3-debug'
-      }
+    },
+    parse: parseOcrText,
+    deleteFile: function (fileID) {
+      return cloud.deleteFile({ fileList: [fileID] })
     }
-
-    return {
-      ok: false,
-      msg: 'OCR未识别到文字，请确保图片清晰',
-      courses: []
-    }
-  } catch (err) {
-    return {
-      ok: false,
-      msg: 'OCR服务暂不可用。请在微信云开发控制台开通「图像识别」-「印刷文字识别」能力。您也可以手动添加课程。',
-      courses: [],
-      error: err.errMsg || String(err)
-    }
-  }
+  })
 }

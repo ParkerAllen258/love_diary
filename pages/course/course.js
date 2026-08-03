@@ -1,6 +1,8 @@
 ﻿const db = wx.cloud.database()
 const helper = require('../../utils/scheduleHelper')
 const { getCoupleId } = require('../../utils/relationship')
+const { callSharedData } = require('../../utils/sharedData')
+const { waitForAuth } = require('../../utils/auth')
 
 const WEEK_LIST = helper.WEEK_LIST
 const SECTIONS = helper.SECTIONS
@@ -62,11 +64,13 @@ Page({
     todayIdx: helper.getTodayWeekIndex()
   },
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
     this.loadAllCourses()
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
     this.loadAllCourses()
     this.startCountdown()
   },
@@ -81,8 +85,7 @@ Page({
 
   loadAllCourses() {
     const coupleId = getCoupleId()
-    const myCode = wx.getStorageSync('myCode')
-    const partnerCode = wx.getStorageSync('partnerCode')
+    const myOpenid = wx.getStorageSync('openid') || ''
 
     if (!coupleId) {
       wx.showToast({ title: '请先绑定情侣', icon: 'none' })
@@ -91,38 +94,15 @@ Page({
       return
     }
 
-    const myQuery = db.collection('schedule').where({
-      type: 'course',
-      coupleId: coupleId,
-      authorCode: myCode
-    })
-
-    myQuery.limit(100).get().then(res => {
-      const courses = res.data || []
-      this.setData({ courses })
-
-      if (partnerCode) {
-        this.loadPartnerCourses(coupleId, myCode, partnerCode, courses)
-      } else {
-        this.refreshAll(courses, [])
-      }
+    db.collection('schedule').where({ type: 'course', coupleId }).limit(100).get().then(res => {
+      const all = res.data || []
+      const courses = all.filter(item => item.authorOpenid === myOpenid)
+      const partnerCourses = all.filter(item => item.authorOpenid && item.authorOpenid !== myOpenid)
+      this.setData({ courses, partnerCourses })
+      this.refreshAll(courses, partnerCourses)
     }).catch(() => {
       this.setData({ courses: [] })
       this.refreshAll([], [])
-    })
-  },
-
-  loadPartnerCourses(coupleId, myCode, partnerCode, myCourses) {
-    db.collection('schedule').where({
-      coupleId: coupleId,
-      type: 'course',
-      authorCode: partnerCode
-    }).get().then(res => {
-      const partnerCourses = res.data || []
-      this.setData({ partnerCourses })
-      this.refreshAll(myCourses, partnerCourses)
-    }).catch(() => {
-      this.refreshAll(myCourses, [])
     })
   },
 
@@ -318,7 +298,7 @@ Page({
       return
     }
 
-    const data = {
+    const fields = {
       name: form.name.trim(),
       weekIndex: form.weekIndex,
       week: WEEK_LIST[form.weekIndex],
@@ -327,18 +307,20 @@ Page({
       place: form.place.trim(),
       teacher: form.teacher.trim(),
       className: (form.className || '').trim(),
-      color: form.color,
+      color: form.color
+    }
+    const data = Object.assign({}, fields, {
       type: 'course',
       coupleId: getCoupleId(),
       authorOpenid: wx.getStorageSync('openid') || '',
       authorCode: wx.getStorageSync('myCode') || ''
-    }
+    })
 
     this.setData({ isSaving: true })
     wx.showLoading({ title: '保存中...' })
 
     const p = editingId
-      ? db.collection('schedule').doc(editingId).update({ data })
+      ? callSharedData('updateSharedRecord', { collection: 'schedule', id: editingId, fields })
       : db.collection('schedule').add({ data: Object.assign({ createTime: Date.now() }, data) })
 
     p.then(() => {
@@ -364,7 +346,7 @@ Page({
       success: res => {
         if (!res.confirm) return
         wx.showLoading({ title: '删除中...' })
-        db.collection('schedule').doc(id).remove().then(() => {
+        callSharedData('deleteOwnedRecord', { collection: 'schedule', id }).then(() => {
           wx.hideLoading()
           wx.showToast({ title: '已删除' })
           this.closeForm()
@@ -390,8 +372,9 @@ Page({
   doOcr(filePath) {
     wx.showLoading({ title: 'AI识别中...', mask: true })
 
+    const openid = wx.getStorageSync('openid') || ''
     wx.cloud.uploadFile({
-      cloudPath: 'ocr/' + Date.now() + '.png',
+      cloudPath: 'ocr/' + openid + '/' + Date.now() + '.png',
       filePath
     }).then(uploadRes => {
       return wx.cloud.callFunction({
@@ -402,35 +385,11 @@ Page({
       wx.hideLoading()
       const result = ocrRes.result || {}
       const courses = result.courses || []
-      const rawText = result.rawText || ''
 
       if (!courses || courses.length === 0) {
-        const debug = result.debug || {}
-        const hasPos = debug.hasPosData ? '有' : (debug.hasPosData === false ? '无' : '未知')
-        const itemCount = debug.itemCount != null ? debug.itemCount : '?'
-        const firstItemTexts = debug.firstItems ? debug.firstItems.map(function(it) {
-          return (it.hasPos ? '[坐标] ' : '[文本] ') + it.text
-        }).join('\n') : ''
-        
-        // 无论如何都要显示 rawText
-        var rawDisplay = ''
-        if (debug.ocrKeys) rawDisplay += '\n[OCR字段：' + debug.ocrKeys + ']'
-        if (debug.sampleJson) rawDisplay += '\n[原始数据：' + debug.sampleJson + ']'
-        if (rawText && rawText.trim()) {
-          rawDisplay += '\n---识别原文(前300字)---\n' + rawText.substring(0, 300) + (rawText.length > 300 ? '...' : '')
-        }
-        if (firstItemTexts) {
-          rawDisplay += '\n---前5个文字块---\n' + firstItemTexts
-        }
-
-        var diagInfo = '识别到 ' + itemCount + ' 个文字块，坐标数据：' + hasPos
-        if (result.version) diagInfo += '\n[云函数版本：' + result.version + ']'
-        if (!result.debug) diagInfo += '\n[提示：云函数可能未部署最新版，请重新上传部署]'
-        if (!rawText || !rawText.trim()) diagInfo += '\n[rawText为空，请检查云函数]'
-
         wx.showModal({
           title: '未识别到课程',
-          content: '自动识别未能提取到课程信息。\n\n' + diagInfo + rawDisplay + '\n\n你可以：\n1. 重新拍摄更清晰的图片\n2. 手动添加课程',
+          content: (result.msg || '自动识别未能提取到课程信息。') + '\n\n你可以重新拍摄更清晰的图片，或手动添加课程。',
           confirmText: '手动添加',
           cancelText: '重新拍照',
           success: r => {

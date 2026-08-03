@@ -1,5 +1,7 @@
 ﻿const db = wx.cloud.database()
 const { callRelationship, getCoupleId } = require('../../utils/relationship')
+const { callSharedData, resolveFileUrls } = require('../../utils/sharedData')
+const { waitForAuth } = require('../../utils/auth')
 
 // ========== 状态配置 ==========
 var STATUS_CONFIG = [
@@ -36,6 +38,7 @@ Page({
   data: {
     hasCouple: false,
     myCode: '',
+    myOpenid: '',
     partnerCode: '',
     myName: '我',
     partnerName: 'TA',
@@ -149,7 +152,8 @@ Page({
   },
 
   // ==================== 生命周期 ====================
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
     var mc = wx.getStorageSync('myCode') || ''
     var pc = wx.getStorageSync('partnerCode') || ''
     var has = !!wx.getStorageSync('hasCouple')
@@ -157,6 +161,7 @@ Page({
     this.setData({
       hasCouple: has,
       myCode: mc,
+      myOpenid: wx.getStorageSync('openid') || '',
       partnerCode: pc,
       myName: wx.getStorageSync('myName') || '我',
       partnerName: wx.getStorageSync('partnerName') || 'TA',
@@ -174,7 +179,8 @@ Page({
     }
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
     var has = !!wx.getStorageSync('hasCouple')
     this.setData({ hasCouple: has })
     if (has) {
@@ -220,48 +226,12 @@ Page({
 
   // ==================== 情侣信息 & 恋爱日期 ====================
   loadCoupleInfo() {
-    var mc = this.data.myCode
-    if (!mc && !(mc = wx.getStorageSync('myCode'))) return
-    var coupleId = getCoupleId()
-    if (!coupleId) return
-    var that = this
-    db.collection('couple').doc(coupleId).get().then(function (res) {
-      if (!res.data) return
-      var c = res.data
-      var ba = c.boyAvatar || ''
-      var ga = c.girlAvatar || ''
-      var loveDate = c.loveDate || ''
-      var bn = c.user1Name || 'Boy'
-      var gn = c.user2Name || 'Girl'
-      var boyCode = c.boyCode || ''
-      var girlCode = c.girlCode || ''
-      wx.setStorageSync('boyAvatar', ba)
-      wx.setStorageSync('girlAvatar', ga)
-      wx.setStorageSync('loveDate', loveDate)
-      wx.setStorageSync('boyName', bn)
-      wx.setStorageSync('girlName', gn)
-      // Role detection based on boyCode/girlCode
-      if (boyCode === mc) {
-        wx.setStorageSync('myRole', 'user1')
-        wx.setStorageSync('myName', bn)
-        wx.setStorageSync('partnerName', gn)
-      } else if (girlCode === mc) {
-        wx.setStorageSync('myRole', 'user2')
-        wx.setStorageSync('myName', gn)
-        wx.setStorageSync('partnerName', bn)
-      } else {
-        // Fallback: if boyCode/girlCode not set, use user1/user2 comparison (consistent with index.js)
-        if (c.user1 === mc) {
-          wx.setStorageSync('myRole', 'user1')
-          wx.setStorageSync('myName', bn)
-          wx.setStorageSync('partnerName', gn)
-        } else if (c.user2 === mc) {
-          wx.setStorageSync('myRole', 'user2')
-          wx.setStorageSync('myName', gn)
-          wx.setStorageSync('partnerName', bn)
-        }
-      }
-
+    if (!getCoupleId()) return
+    var ba = wx.getStorageSync('boyAvatar') || ''
+    var ga = wx.getStorageSync('girlAvatar') || ''
+    var loveDate = wx.getStorageSync('loveDate') || ''
+    var bn = wx.getStorageSync('boyName') || 'Boy'
+    var gn = wx.getStorageSync('girlName') || 'Girl'
       var loveDays = 0
       if (loveDate) {
         var ld = new Date(loveDate)
@@ -271,13 +241,11 @@ Page({
         }
       }
 
-      // 加载统计天数偏移量（兼容旧格式）
-      var adj = c.statAdjustment || {}
+      var adj = wx.getStorageSync('statAdjustment') || {}
       if (adj.togetherOffset === undefined) adj.togetherOffset = 0
       if (adj.apartOffset === undefined) adj.apartOffset = 0
-      wx.setStorageSync('statAdjustment', adj)
 
-      that.setData({
+      this.setData({
         boyAvatar: ba, girlAvatar: ga,
         boyName: bn, girlName: gn,
         myName: wx.getStorageSync('myName') || '我',
@@ -287,17 +255,6 @@ Page({
         loveDateSet: !!loveDate,
         statAdjustment: adj
       })
-
-
-    }).catch(function () {
-      that.setData({
-        boyAvatar: wx.getStorageSync('boyAvatar') || '',
-        girlAvatar: wx.getStorageSync('girlAvatar') || '',
-        boyName: wx.getStorageSync('boyName') || 'Boy',
-        girlName: wx.getStorageSync('girlName') || 'Girl',
-        loveDate: wx.getStorageSync('loveDate') || ''
-      })
-    })
   },
 
   // ==================== 设置恋爱日期 ====================
@@ -366,14 +323,14 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
     var cp = getCoupleId()
     if (!cp) return
     var today = todayStr()
-    var mc = this.data.myCode
+    var myOpenid = this.data.myOpenid || wx.getStorageSync('openid') || ''
     var that = this
     db.collection('companion_records').where({ coupleId: cp, date: today }).limit(20).get().then(function (res) {
       var records = res.data || []
       var authors = {}
-      records.forEach(function (r) { authors[r.authorCode] = true })
-      var mySigned = !!authors[mc]
-      var partnerSigned = Object.keys(authors).some(function (k) { return k !== mc })
+      records.forEach(function (r) { authors[r.authorOpenid] = true })
+      var mySigned = !!authors[myOpenid]
+      var partnerSigned = Object.keys(authors).some(function (k) { return k !== myOpenid })
       var both = mySigned && partnerSigned
 
       var heartClass = 'heart-none'
@@ -430,7 +387,7 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
 
       db.collection('companion_records')
         .where({ coupleId: cp })
-        .field({ date: true, status: true, authorCode: true })
+        .field({ date: true, status: true, authorOpenid: true })
         .orderBy('date', 'asc')
         .skip(skipCount)
         .limit(BATCH)
@@ -562,13 +519,13 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
     db.collection('companion_records').where({
       coupleId: cp,
       date: db.command.gte(startDate).and(db.command.lte(endDate))
-    }).field({ date: true, status: true, authorCode: true }).limit(1000).get().then(function (res) {
+    }).field({ date: true, status: true, authorOpenid: true }).limit(1000).get().then(function (res) {
       var records = res.data || []
       var dayMap = {}
       records.forEach(function (r) {
         if (!dayMap[r.date]) dayMap[r.date] = { statuses: [], authors: {} }
         dayMap[r.date].statuses.push(r.status)
-        dayMap[r.date].authors[r.authorCode] = true
+        dayMap[r.date].authors[r.authorOpenid] = true
       })
       that.buildMonthHeatmap(dayMap)
     }).catch(function () {})
@@ -696,21 +653,18 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
   saveCheckin() {
     var status = this.data.selectedStatus
     if (!status) { wx.showToast({ title: '请选择陪伴状态', icon: 'none' }); return }
-    var cp = getCoupleId()
-    if (!cp) { wx.showToast({ title: '请先绑定情侣', icon: 'none' }); return }
+    if (!getCoupleId()) { wx.showToast({ title: '请先绑定情侣', icon: 'none' }); return }
 
     var today = todayStr()
-    var myCode = wx.getStorageSync('myCode') || ''
     var data = {
-      coupleId: cp, date: today, status: status,
+      date: today, status: status,
       emotion: this.data.selectedEmotion || '', note: (this.data.checkinNote || '').trim(),
-      place: (this.data.checkinPlace || '').trim(), photo: this.data.checkinPhoto || '',
-      authorCode: myCode, authorOpenid: wx.getStorageSync('openid') || '', authorName: wx.getStorageSync('myName') || '我', createTime: Date.now()
+      place: (this.data.checkinPlace || '').trim(), photo: this.data.checkinPhoto || ''
     }
 
     var that = this
-    var doAdd = function () {
-      db.collection('companion_records').add({ data: data }).then(function () {
+    wx.showLoading({ title: '签到中...' })
+    callSharedData('saveCheckin', data).then(function () {
         wx.hideLoading()
         wx.showToast({ title: '签到成功 ✨', icon: 'success' })
         that.closeForm()
@@ -719,26 +673,15 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
           that.loadStats()
           that.loadMonthHeatmap()
           that.loadRecentRecords()
-          that.checkTreeGrowth()
+          that.loadTree()
         }, 300)
       }).catch(function (err) {
         wx.hideLoading()
         console.error('签到失败:', err)
         var msg = '签到失败'
-        if (err && err.errMsg) msg = err.errMsg.indexOf('permission') > -1 ? '权限不足，请先配置数据库权限' : err.errMsg
+        if (err && err.message) msg = err.message
         wx.showToast({ title: msg, icon: 'none', duration: 3000 })
       })
-    }
-
-    wx.showLoading({ title: '签到中...' })
-
-    // 删除自己今天的旧记录再添加（不影响搭档记录）
-    db.collection('companion_records').where({ coupleId: cp, date: today, authorCode: myCode }).limit(20).get().then(function (res) {
-      if (res.data.length > 0) {
-        var tasks = res.data.map(function (r) { return db.collection('companion_records').doc(r._id).remove() })
-        Promise.all(tasks).then(doAdd).catch(doAdd)
-      } else { doAdd() }
-    }).catch(function () { doAdd() })
   },
 
   // ==================== 删除记录 ====================
@@ -747,10 +690,10 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
     var that = this
     wx.showModal({ title: '删除记录', content: '确定删除这条陪伴记录吗？', confirmColor: '#ff6b8a', success: function (r) {
       if (!r.confirm) return
-      db.collection('companion_records').doc(id).remove().then(function () {
+      callSharedData('deleteOwnedRecord', { collection: 'companion_records', id: id }).then(function () {
         wx.showToast({ title: '已删除' })
         that.loadTodayStatus(); that.loadStats(); that.loadMonthHeatmap(); that.loadRecentRecords()
-      }).catch(function () { wx.showToast({ title: '删除失败', icon: 'none' }) })
+      }).catch(function (err) { wx.showToast({ title: err.message || '只能删除自己的记录', icon: 'none' }) })
     }})
   },
 
@@ -759,8 +702,17 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
     var cp = getCoupleId()
     if (!cp) return
     var that = this
-    db.collection('companion_records').where({ coupleId: cp }).orderBy('date', 'desc').limit(20).get().then(function (res) {
-      that.setData({ recentRecords: res.data || [] })
+    db.collection('companion_records').where({ coupleId: cp }).orderBy('date', 'desc').limit(20).get().then(async function (res) {
+      var rows = res.data || []
+      var urls = await resolveFileUrls(rows.map(function (record) { return record.photo }))
+      var myOpenid = wx.getStorageSync('openid') || ''
+      that.setData({ recentRecords: rows.map(function (record) {
+        return Object.assign({}, record, {
+          photoFileID: record.photo,
+          photo: urls[record.photo] || '',
+          isMine: record.authorOpenid === myOpenid
+        })
+      }) })
     })
   },
 
@@ -804,18 +756,20 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
     var cp = getCoupleId()
     if (!cp) return
     var that = this
-    var myCode = this.data.myCode
+    var myOpenid = this.data.myOpenid || wx.getStorageSync('openid') || ''
 
     db.collection('companion_records').where({
       coupleId: cp,
       date: dateStr
-    }).limit(20).get().then(function (res) {
-      var records = (res.data || []).map(function (r) {
+    }).limit(20).get().then(async function (res) {
+      var rows = res.data || []
+      var urls = await resolveFileUrls(rows.map(function (record) { return record.photo }))
+      var records = rows.map(function (r) {
         var sc = STATUS_CONFIG.find(function (s) { return s.key === r.status })
         var ec = EMOTION_CONFIG.find(function (e) { return e.key === r.emotion })
         return {
           _id: r._id,
-          authorCode: r.authorCode,
+          authorOpenid: r.authorOpenid,
           authorName: r.authorName || 'TA',
           status: r.status,
           statusLabel: sc ? sc.emoji + ' ' + sc.label : r.status,
@@ -824,24 +778,25 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
           emotionEmoji: ec ? ec.emoji : '',
           place: r.place || '',
           note: r.note || '',
-          photo: r.photo || ''
+          photo: urls[r.photo] || '',
+          photoFileID: r.photo || ''
         }
       })
 
-      var authorCodes = {}
-      records.forEach(function (r) { authorCodes[r.authorCode] = true })
+      var authorOpenids = {}
+      records.forEach(function (r) { authorOpenids[r.authorOpenid] = true })
       var canRetroSign = false
       var retroSignTip = ''
 
       if (dateStr === todayStr()) {
-        if (!authorCodes[myCode]) {
+        if (!authorOpenids[myOpenid]) {
           canRetroSign = true
           retroSignTip = '你今天还没签到，可以补签'
         } else {
           retroSignTip = '你今天已经签到过了'
         }
       } else {
-        if (!authorCodes[myCode]) {
+        if (!authorOpenids[myOpenid]) {
           canRetroSign = true
           retroSignTip = '你当天忘记签到了，可以补签'
         }
@@ -911,33 +866,20 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
   saveRetroSign() {
     var status = this.data.retroStatus
     if (!status) { wx.showToast({ title: '请选择陪伴状态', icon: 'none' }); return }
-    var cp = getCoupleId()
-    if (!cp) { wx.showToast({ title: '请先绑定情侣', icon: 'none' }); return }
+    if (!getCoupleId()) { wx.showToast({ title: '请先绑定情侣', icon: 'none' }); return }
 
     var retroDate = this.data.retroDate
-    var myCode = wx.getStorageSync('myCode') || ''
     var data = {
-      coupleId: cp, date: retroDate, status: status,
+      date: retroDate, status: status,
       emotion: this.data.retroEmotion || '', note: (this.data.retroNote || '').trim(),
-      place: (this.data.retroPlace || '').trim(), photo: this.data.retroPhoto || '',
-      authorCode: myCode, authorOpenid: wx.getStorageSync('openid') || '', authorName: wx.getStorageSync('myName') || '我', createTime: Date.now()
+      place: (this.data.retroPlace || '').trim(), photo: this.data.retroPhoto || ''
     }
 
     var that = this
 
     wx.showLoading({ title: '补签中...' })
 
-    db.collection('companion_records').where({
-      coupleId: cp, date: retroDate, authorCode: myCode
-    }).limit(20).get().then(function (res) {
-      var tasks = []
-      if (res.data.length > 0) {
-        tasks = res.data.map(function (r) { return db.collection('companion_records').doc(r._id).remove() })
-      }
-      return Promise.all(tasks)
-    }).then(function () {
-      return db.collection('companion_records').add({ data: data })
-    }).then(function () {
+    callSharedData('saveCheckin', data).then(function () {
       wx.hideLoading()
       wx.showToast({ title: '补签成功 ✨', icon: 'success' })
       that.setData({ showRetroForm: false, retroStatus: '', retroEmotion: '', retroNote: '', retroPlace: '', retroPhoto: '' })
@@ -946,12 +888,12 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
         that.loadStats()
         that.loadMonthHeatmap()
         that.loadRecentRecords()
-        that.checkTreeGrowth(retroDate)
+        that.loadTree()
       }, 600)
     }).catch(function (err) {
       wx.hideLoading()
       var msg = '补签失败'
-      if (err && err.errMsg) msg = err.errMsg.indexOf('permission') > -1 ? '权限不足' : err.errMsg
+      if (err && err.message) msg = err.message
       wx.showToast({ title: msg, icon: 'none', duration: 3000 })
     })
   },
@@ -961,33 +903,8 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
     var cp = getCoupleId()
     if (!cp) return
     var that = this
-    db.collection('couple_tree').where({ coupleId: cp }).limit(1).get().then(function (res) {
-      if (res.data.length === 0) {
-        // 创建小树
-        return db.collection('couple_tree').add({
-          data: {
-            coupleId: cp,
-            authorOpenid: wx.getStorageSync('openid') || '',
-            totalGrowth: 0,
-            streak: 0,
-            lastGrowDate: '',
-            wateredBy: [],
-            createTime: Date.now()
-          }
-        }).then(function () {
-          // 创建成功后重新查询
-          return db.collection('couple_tree').where({ coupleId: cp }).limit(1).get()
-        }).catch(function (err) {
-          // 创建失败（如集合权限未配置），仍然显示树入口让用户知道此功能
-          console.error('loadTree create failed:', err)
-          that.setData({ 'tree.exists': false })
-          return null
-        })
-      }
-      return res
-    }).then(function (res2) {
-      if (!res2) return
-      var tree = (res2.data && res2.data.length > 0) ? res2.data[0] : null
+    db.collection('couple_tree').doc(cp).get().then(function (res) {
+      var tree = res.data
       if (!tree || !tree.coupleId) {
         that.setData({ 'tree.exists': false })
         return
@@ -1004,8 +921,8 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
     var totalGrowth = tree.totalGrowth || 0
     var stage = Math.min(Math.floor(totalGrowth / 100), 5)
     var growthInStage = totalGrowth % 100
-    var myCode = this.data.myCode
-    var wateredBy = tree.wateredBy || []
+    var myOpenid = this.data.myOpenid || wx.getStorageSync('openid') || ''
+    var wateredBy = tree.wateredByOpenids || []
 
     this.setData({
       'tree.exists': true,
@@ -1013,7 +930,7 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
       'tree.growth': growthInStage,
       'tree.streak': tree.streak || 0,
       'tree.totalGrowth': totalGrowth,
-      'tree.wateredByMe': wateredBy.indexOf(myCode) !== -1,
+      'tree.wateredByMe': wateredBy.indexOf(myOpenid) !== -1,
       'tree.stageName': stages[stage].name,
       'tree.stageEmoji': stages[stage].emoji,
       'tree.stageDesc': stages[stage].desc,
@@ -1021,111 +938,18 @@ onDayChange(e) { this.setData({ pickerDay: parseInt(e.detail.value) + 1 }) },
     })
   },
 
-  checkTreeGrowth(dateStr) {
-    var cp = getCoupleId()
-    if (!cp) return
-    var checkDate = dateStr || todayStr()
-    var that = this
-
-    // 检查指定日期双方是否都签到了
-    db.collection('companion_records').where({ coupleId: cp, date: checkDate }).limit(20).get().then(function (res) {
-      var records = res.data || []
-      var authors = {}
-      records.forEach(function (r) { authors[r.authorCode] = true })
-      var bothCheckedIn = Object.keys(authors).length >= 2
-      if (!bothCheckedIn) { that.loadTree(); return }
-
-      // 双方都签到了，更新小树
-      db.collection('couple_tree').where({ coupleId: cp }).limit(1).get().then(function (treeRes) {
-        if (treeRes.data.length === 0) { that.loadTree(); return }
-        var tree = treeRes.data[0]
-        var lastGrowDate = tree.lastGrowDate || ''
-
-        // 该日期已经成长过了
-        if (lastGrowDate === checkDate) { that.loadTree(); return }
-
-        // 计算连续天数
-        var newStreak = tree.streak || 0
-        if (lastGrowDate) {
-          var lastDate = new Date(lastGrowDate)
-          var currentDate = new Date(checkDate)
-          var diffDays = Math.floor((currentDate - lastDate) / (1000 * 60 * 60 * 24))
-          if (diffDays === 1) {
-            newStreak = newStreak + 1  // 连续
-          } else {
-            newStreak = 1  // 中断，重新开始
-          }
-        } else {
-          newStreak = 1
-        }
-
-        // 基础成长 +15，连续7天额外+5
-        var growAmount = 15
-        if (newStreak > 0 && newStreak % 7 === 0) {
-          growAmount += 5
-        }
-
-        var newTotalGrowth = (tree.totalGrowth || 0) + growAmount
-        var oldStage = Math.min(Math.floor((tree.totalGrowth || 0) / 100), 5)
-        var newStage = Math.min(Math.floor(newTotalGrowth / 100), 5)
-
-        return db.collection('couple_tree').doc(tree._id).update({
-          data: {
-            totalGrowth: newTotalGrowth,
-            streak: newStreak,
-            lastGrowDate: checkDate,
-            wateredBy: []  // 新的一天，重置浇水
-          }
-        }).then(function () {
-          that.loadTree()
-          if (newStage > oldStage) {
-            setTimeout(function () {
-              wx.showToast({ title: '🎉 小树升级啦！', icon: 'none', duration: 2500 })
-            }, 600)
-          }
-          if (newStreak > 0 && newStreak % 7 === 0) {
-            setTimeout(function () {
-              wx.showToast({ title: '🔥 连续' + newStreak + '天！额外成长+5', icon: 'none', duration: 2000 })
-            }, 1200)
-          }
-        })
-      }).catch(function () { that.loadTree() })
-    }).catch(function () {})
+  checkTreeGrowth() {
+    this.loadTree()
   },
 
   waterTree() {
     var cp = getCoupleId()
     if (!cp) { wx.showToast({ title: '请先绑定情侣', icon: 'none' }); return }
-    var myCode = this.data.myCode
     var that = this
-
-    db.collection('couple_tree').where({ coupleId: cp }).limit(1).get().then(function (res) {
-      if (res.data.length === 0) { wx.showToast({ title: '小树还没种下呢~', icon: 'none' }); return }
-      var tree = res.data[0]
-      var wateredBy = tree.wateredBy || []
-
-      if (wateredBy.indexOf(myCode) !== -1) {
-        wx.showToast({ title: '你已经浇过水啦，等小树成长后可以再浇 💧', icon: 'none' })
-        return
-      }
-
-      wateredBy.push(myCode)
-      var newTotalGrowth = (tree.totalGrowth || 0) + 5
-      var oldStage = Math.min(Math.floor((tree.totalGrowth || 0) / 100), 5)
-      var newStage = Math.min(Math.floor(newTotalGrowth / 100), 5)
-
-      return db.collection('couple_tree').doc(tree._id).update({
-        data: { totalGrowth: newTotalGrowth, wateredBy: wateredBy }
-      }).then(function () {
+    callSharedData('waterTree').then(function () {
         that.loadTree()
         wx.showToast({ title: '浇水成功 🌧️ +5成长', icon: 'none' })
-        if (newStage > oldStage) {
-          setTimeout(function () {
-            wx.showToast({ title: '🎉 小树升级啦！', icon: 'none', duration: 2500 })
-          }, 1600)
-        }
-      })
-    }).catch(function () { wx.showToast({ title: '浇水失败', icon: 'none' }) })
+      }).catch(function (err) { wx.showToast({ title: err.message || '浇水失败', icon: 'none' }) })
   },
 
   // ==================== 统计天数修改 ====================

@@ -14,7 +14,9 @@ App({
   },
 
   onLaunch() {
-    initAuth().catch(error => {
+    const authReady = initAuth()
+    this.globalData.authReady = authReady
+    authReady.catch(error => {
       console.error('relationship bootstrap failed:', error)
     })
   }

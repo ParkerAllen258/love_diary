@@ -682,3 +682,31 @@ test('updateCoupleFields rejects invalid allowed-field values before repository 
     await expectCode(() => service.execute('updateCoupleFields', 'alice', { fields }), 'INVALID_PAYLOAD')
   }
 })
+
+test('updateCoupleFields limits personal fields to the callers relationship role', async () => {
+  const { repository, service } = harness()
+  seedUser(repository, 'alice', 'ALICE1', {
+    relationshipStatus: 'active', coupleId: 'cp_active', partnerOpenid: 'bob'
+  })
+  seedUser(repository, 'bob', 'BOB222', {
+    relationshipStatus: 'active', coupleId: 'cp_active', partnerOpenid: 'alice'
+  })
+  repository.couples.set('cp_active', {
+    _id: 'cp_active', status: 'active', memberOpenids: ['alice', 'bob'],
+    user1Openid: 'alice', user2Openid: 'bob'
+  })
+
+  await expectCode(
+    () => service.execute('updateCoupleFields', 'alice', { fields: { user2Name: '伪造昵称' } }),
+    'FORBIDDEN'
+  )
+  await expectCode(
+    () => service.execute('updateCoupleFields', 'bob', { fields: { boyAvatar: 'cloud://forged' } }),
+    'FORBIDDEN'
+  )
+
+  await service.execute('updateCoupleFields', 'alice', { fields: { user1Name: 'Alice', loveDate: '2026-01-01' } })
+  await service.execute('updateCoupleFields', 'bob', { fields: { girlAvatar: 'cloud://bob' } })
+  assert.equal(repository.couples.get('cp_active').user1Name, 'Alice')
+  assert.equal(repository.couples.get('cp_active').girlAvatar, 'cloud://bob')
+})

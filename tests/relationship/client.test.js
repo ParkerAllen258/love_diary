@@ -13,7 +13,7 @@ function loadClient({ response } = {}) {
     cloud: {
       async callFunction(options) {
         calls.push(options)
-        return { result: response }
+        return { result: typeof response === 'function' ? response(options) : response }
       }
     }
   }
@@ -72,6 +72,30 @@ test('bootstrap clears stale couple cache for a single user', async () => {
   assert.equal(storage.has('partnerOpenid'), false)
   assert.equal(storage.has('partnerCode'), false)
   assert.equal(storage.get('hasCouple'), false)
+})
+
+test('bootstrap stores raw avatar file IDs and display-safe temporary URLs', async () => {
+  const fileID = 'cloud://env/couples/cp_active/avatars/alice.png'
+  const snapshot = {
+    _id: 'alice', inviteCode: 'ABC234', coupleId: 'cp_active', relationshipStatus: 'active',
+    partnerOpenid: 'bob', myRole: 'user1', partner: { _id: 'bob' },
+    couple: { user1Name: 'Alice', user2Name: 'Bob', boyAvatar: fileID, girlAvatar: '' }
+  }
+  const { client, storage } = loadClient({
+    response(options) {
+      if (options.name === 'sharedDataService') {
+        return { ok: true, data: [{ fileID, tempFileURL: 'https://temp/avatar.png', ok: true }] }
+      }
+      return { ok: true, data: snapshot }
+    }
+  })
+
+  const result = await client.bootstrapRelationship()
+
+  assert.equal(result.couple.boyAvatar, 'https://temp/avatar.png')
+  assert.equal(storage.get('boyAvatar'), 'https://temp/avatar.png')
+  assert.equal(storage.get('boyAvatarFileID'), fileID)
+  assert.equal(storage.get('myAvatarFileID'), fileID)
 })
 
 test('callRelationship sends action and payload without openid or coupleId authority fields', async () => {

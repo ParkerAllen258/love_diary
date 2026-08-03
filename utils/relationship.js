@@ -1,6 +1,8 @@
+const { resolveFileUrls } = require('./sharedData')
+
 const RELATIONSHIP_CACHE_KEYS = Object.freeze([
   'partnerOpenid', 'partnerCode', 'coupleId', 'hasCouple',
-  'boyAvatar', 'girlAvatar', 'boyName', 'girlName',
+  'boyAvatar', 'girlAvatar', 'boyAvatarFileID', 'girlAvatarFileID', 'myAvatarFileID', 'boyName', 'girlName',
   'loveDate', 'myRole', 'myGender', 'myName', 'partnerName',
   'statAdjustment'
 ])
@@ -59,6 +61,11 @@ function applyRelationshipSnapshot(snapshot = {}) {
   wx.setStorageSync('girlName', couple.user2Name || 'Girl')
   wx.setStorageSync('boyAvatar', couple.boyAvatar || '')
   wx.setStorageSync('girlAvatar', couple.girlAvatar || '')
+  wx.setStorageSync('boyAvatarFileID', couple.boyAvatarFileID || couple.boyAvatar || '')
+  wx.setStorageSync('girlAvatarFileID', couple.girlAvatarFileID || couple.girlAvatar || '')
+  wx.setStorageSync('myAvatarFileID', myRole === 'user1'
+    ? (couple.boyAvatarFileID || couple.boyAvatar || '')
+    : (couple.girlAvatarFileID || couple.girlAvatar || ''))
   wx.setStorageSync('loveDate', couple.loveDate || '')
   if (couple.statAdjustment !== undefined) {
     wx.setStorageSync('statAdjustment', couple.statAdjustment)
@@ -86,6 +93,20 @@ async function callRelationship(action, payload = {}) {
 
 async function bootstrapRelationship() {
   const snapshot = await callRelationship('bootstrap')
+  const couple = snapshot && snapshot.couple
+  if (couple && snapshot.relationshipStatus === 'active') {
+    const boyAvatarFileID = couple.boyAvatar || ''
+    const girlAvatarFileID = couple.girlAvatar || ''
+    const protectedIDs = [boyAvatarFileID, girlAvatarFileID].filter(fileID => fileID.includes('/couples/'))
+    const urls = await resolveFileUrls(protectedIDs)
+    snapshot.couple = {
+      ...couple,
+      boyAvatarFileID,
+      girlAvatarFileID,
+      boyAvatar: urls[boyAvatarFileID] || boyAvatarFileID,
+      girlAvatar: urls[girlAvatarFileID] || girlAvatarFileID
+    }
+  }
   return applyRelationshipSnapshot(snapshot)
 }
 

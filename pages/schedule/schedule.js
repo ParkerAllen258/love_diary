@@ -2,6 +2,8 @@
 const calendar = require('../../utils/calendar')
 const solarLunar = (require('../../utils/solarlunar').default || require('../../utils/solarlunar'))
 const { callRelationship, getCoupleId } = require('../../utils/relationship')
+const { callSharedData } = require('../../utils/sharedData')
+const { waitForAuth } = require('../../utils/auth')
 
 // 注意：SOLAR_HOLIDAYS 需每年更新。建议每年年初补充新年份的节假日数据。
 const SOLAR_HOLIDAYS = {
@@ -117,11 +119,13 @@ Page({
     partnerAvatar: ''
   },
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
     this.initData()
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
     this.initData()
   },
 
@@ -396,21 +400,23 @@ Page({
       return
     }
 
-    const data = {
+    const fields = {
       date: eventForm.date,
       title: eventForm.title.trim(),
       emoji: eventForm.emoji,
       time: eventForm.time.trim(),
-      color: eventForm.color,
+      color: eventForm.color
+    }
+    const data = Object.assign({}, fields, {
       type: 'event',
       coupleId: getCoupleId(),
       authorCode: wx.getStorageSync('myCode') || '',
       authorOpenid: wx.getStorageSync('openid') || ''
-    }
+    })
 
     wx.showLoading({ title: '保存中...' })
     const p = editingEventId
-      ? db.collection('schedule').doc(editingEventId).update({ data })
+      ? callSharedData('updateSharedRecord', { collection: 'schedule', id: editingEventId, fields })
       : db.collection('schedule').add({ data: Object.assign({ createTime: Date.now() }, data) })
 
     p.then(() => {
@@ -433,7 +439,7 @@ Page({
       content: '确定删除这个日程吗？',
       success: res => {
         if (!res.confirm) return
-        db.collection('schedule').doc(id).remove().then(() => {
+        callSharedData('deleteOwnedRecord', { collection: 'schedule', id }).then(() => {
           wx.showToast({ title: '已删除' })
           this.closeEventForm()
           this.loadEvents(this.data.currentYear, this.data.currentMonth)
@@ -508,8 +514,8 @@ Page({
   togglePlan(e) {
     const id = e.currentTarget.dataset.id
     const completed = e.currentTarget.dataset.completed
-    db.collection('schedule').doc(id).update({
-      data: { completed: !completed }
+    callSharedData('updateSharedRecord', {
+      collection: 'schedule', id, fields: { completed: !completed }
     }).then(() => {
       this.loadPlans()
     }).catch(() => wx.showToast({ title: '操作失败', icon: 'none' }))
@@ -522,7 +528,7 @@ Page({
       content: '确定删除这个计划吗？',
       success: res => {
         if (!res.confirm) return
-        db.collection('schedule').doc(id).remove().then(() => {
+        callSharedData('deleteOwnedRecord', { collection: 'schedule', id }).then(() => {
           wx.showToast({ title: '已删除' })
           this.loadPlans()
         }).catch(() => wx.showToast({ title: '删除失败', icon: 'none' }))

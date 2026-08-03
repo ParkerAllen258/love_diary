@@ -10,7 +10,7 @@
 
 ### 1.1 确认集合存在
 
-在云开发控制台 → 数据库 中确认以下 18 个集合均已创建：
+在云开发控制台 → 数据库 中确认以下 16 个集合均已创建：
 
 | # | 集合名 | 用途 | 权限模型 |
 |---|--------|------|----------|
@@ -30,10 +30,6 @@
 | 14 | `goals` | 目标 | 安全规则 |
 | 15 | `companion_records` | 陪伴记录 | 安全规则 |
 | 16 | `couple_tree` | 情侣树 | 安全规则 |
-| 17 | `chat_records` | AI 精灵聊天记录（个人数据） | 安全规则 |
-| 18 | `anniversaries` | 纪念日（个人数据） | 安全规则 |
-
-> 注：`chat_records` 和 `anniversaries` 为个人数据（非共享），暂不在本次安全规则范围内，保持现有配置。
 
 ### 1.2 创建复合索引
 
@@ -84,8 +80,8 @@
 
 ```json
 {
-  "read": true,
-  "write": "resource.path.indexOf('couples/' + get(`database.users.${auth.openid}`).coupleId) == 0"
+  "read": "resource.openid == auth.openid",
+  "write": "resource.openid == auth.openid"
 }
 ```
 
@@ -110,7 +106,29 @@
 - [ ] `cloudfunctions/relationshipService/lib/service.js` 包含完整生命周期逻辑
 - [ ] `cloudfunctions/relationshipService/lib/cloudRepository.js` 使用 `db.runTransaction`
 
-### 3.2 cleanupExpiredCouples
+### 3.2 sharedDataService
+
+```bash
+# 右键 cloudfunctions/sharedDataService → 上传并部署：云端安装依赖
+```
+
+**部署前确认**：
+- [ ] 所有客户端危险更新/删除都调用 `sharedDataService`
+- [ ] `getFileUrls` 只返回当前 active 情侣目录下文件的临时地址
+- [ ] 事务覆盖签到、目标任务、点赞评论和情侣树
+
+### 3.3 ocrSchedule
+
+```bash
+# 右键 cloudfunctions/ocrSchedule → 上传并部署：云端安装依赖
+```
+
+**部署前确认**：
+- [ ] 只接受 `ocr/<OPENID>/` 下的临时图片
+- [ ] 成功或失败都会删除临时图片
+- [ ] 返回值不包含 OCR 原文、调试对象或供应商错误
+
+### 3.4 cleanupExpiredCouples
 
 ```bash
 # 在微信开发者工具中：
@@ -122,7 +140,7 @@
 - [ ] `cloudfunctions/cleanupExpiredCouples/index.js` 拒绝客户端调用
 - [ ] `cloudfunctions/cleanupExpiredCouples/lib/cleanup.js` 覆盖所有 12 个共享集合
 
-### 3.3 配置定时触发器
+### 3.5 配置定时触发器
 
 在云开发控制台 → 云函数 → cleanupExpiredCouples → 触发器 中：
 
@@ -209,8 +227,8 @@ for f in pages/*/*.js utils/*.js; do node --check "$f"; done  # 语法检查
 
 如果安全规则导致生产问题：
 
-1. **临时回退**：在云开发控制台将受影响的集合安全规则改为 `{ "read": true, "write": true }`。
-2. **恢复限制**：问题排查修复后，重新应用 `security-rules.md` 中的规则。
+1. **临时回退**：恢复上一版已验证的限制规则；不要改成公开读写。
+2. **暂停危险操作**：如更新/删除云函数异常，可先停止对应入口，保留只读和安全创建能力。
 3. **数据恢复**：`cleanupExpiredCouples` 默认只处理 `purgeAfter <= now` 的记录——手动修改 `purgeAfter` 可以推迟清理。
 
 ---

@@ -1,9 +1,7 @@
 const db = wx.cloud.database()
 const { getCoupleId } = require('../../utils/relationship')
-
-function guid() {
-  return 't' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)
-}
+const { callSharedData } = require('../../utils/sharedData')
+const { waitForAuth } = require('../../utils/auth')
 
 Page({
   data: {
@@ -19,7 +17,8 @@ Page({
     taskText: {}
   },
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
     var mc = wx.getStorageSync('myCode') || ''
     var has = !!wx.getStorageSync('hasCouple')
     this.setData({
@@ -32,7 +31,8 @@ Page({
     if (has) this.loadGoals()
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
     if (wx.getStorageSync('hasCouple')) {
       this.setData({ hasCouple: true })
       this.loadGoals()
@@ -73,7 +73,7 @@ Page({
     var total = (g.tasks || []).length
     var done = (g.tasks || []).filter(function (t) { return t.done }).length
     var percent = total > 0 ? Math.round(done / total * 100) : 0
-    var isMine = g.authorCode === this.data.myCode
+    var isMine = g.authorOpenid === (wx.getStorageSync('openid') || '')
     return Object.assign({}, g, {
       total: total,
       done: done,
@@ -143,9 +143,11 @@ Page({
       confirmColor: '#ff6b8a',
       success: function (r) {
         if (!r.confirm) return
-        db.collection('goals').doc(id).remove().then(function () {
+        callSharedData('deleteOwnedRecord', { collection: 'goals', id: id }).then(function () {
           wx.showToast({ title: '已删除' })
           that.loadGoals()
+        }).catch(function (err) {
+          wx.showToast({ title: err.message || '删除失败', icon: 'none' })
         })
       }
     })
@@ -171,12 +173,9 @@ Page({
     var id = e.currentTarget.dataset.id
     var text = (this.data.taskText[id] || '').trim()
     if (!text) { wx.showToast({ title: '请输入任务内容', icon: 'none' }); return }
-    var goal = this.data.goals.find(function (g) { return g._id === id })
-    if (!goal) return
-    var newTasks = (goal.tasks || []).concat([{ id: guid(), text: text, done: false }])
     var that = this
     wx.showLoading({ title: '添加中...' })
-    db.collection('goals').doc(id).update({ data: { tasks: newTasks } }).then(function () {
+    callSharedData('mutateGoalTask', { id: id, operation: 'add', text: text }).then(function () {
       wx.hideLoading()
       var taskText = that.data.taskText
       taskText[id] = ''
@@ -213,7 +212,7 @@ Page({
     // 异步写入云端
     var nowDone = tasks.find(function (t) { return t.id === taskId }).done
     var that = this
-    db.collection('goals').doc(goalId).update({ data: { tasks: tasks } }).then(function () {
+    callSharedData('mutateGoalTask', { id: goalId, operation: 'toggle', taskId: taskId }).then(function () {
       if (updatedGoal.allDone && nowDone) {
         wx.showToast({ title: '🎉 目标全部完成！', icon: 'success' })
       }
@@ -230,10 +229,11 @@ Page({
     var taskId = e.currentTarget.dataset.taskId
     var goal = this.data.goals.find(function (g) { return g._id === goalId })
     if (!goal) return
-    var tasks = goal.tasks.filter(function (t) { return t.id !== taskId })
     var that = this
-    db.collection('goals').doc(goalId).update({ data: { tasks: tasks } }).then(function () {
+    callSharedData('mutateGoalTask', { id: goalId, operation: 'delete', taskId: taskId }).then(function () {
       that.loadGoals()
+    }).catch(function (err) {
+      wx.showToast({ title: err.message || '删除失败', icon: 'none' })
     })
   }
 })

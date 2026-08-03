@@ -8,14 +8,10 @@ Page({
       { type: 'ai', content: DEFAULT_GREETING }
     ],
     loading: false,
-    scrollToView: 'msg-0',
-    apiKey: '',
-    useLocal: true
+    scrollToView: 'msg-0'
   },
 
   onLoad() {
-    const storedKey = wx.getStorageSync('deepseekApiKey') || ''
-    this.setData({ apiKey: storedKey, useLocal: !storedKey })
     // 加载历史聊天记录
     this.loadChatHistory()
   },
@@ -80,11 +76,7 @@ Page({
     // 保存用户消息
     this.saveChatHistory()
 
-    if (this.data.apiKey) {
-      this.callAI(text)
-    } else {
-      this.callLocalAI(text)
-    }
+    this.callLocalAI(text)
   },
 
   // ==================== 本地智能对话 ====================
@@ -252,40 +244,6 @@ Page({
     return arr[Math.floor(Math.random() * arr.length)]
   },
 
-  callAI(userText) {
-    const apiKey = this.data.apiKey
-    if (!apiKey) {
-      this.updateLastAi('还没有配置 API Key 哦~ 请在顶部输入框输入你的 DeepSeek API Key 💡\n\n获取方式：访问 platform.deepseek.com 注册后获取')
-      this.setData({ loading: false })
-      return
-    }
-
-    const messages = []
-    this.data.list.forEach(item => {
-      if (item.loading) return
-      if (item.type === 'user') {
-        messages.push({ role: 'user', content: item.content })
-      } else if (item.type === 'ai') {
-        messages.push({ role: 'assistant', content: item.content })
-      }
-    })
-    wx.cloud.callFunction({
-      name: 'chatAI',
-      data: { messages, apiKey }
-    }).then(res => {
-      const result = res.result || {}
-      if (result.ok) {
-        this.updateLastAi(result.reply)
-      } else {
-        this.updateLastAi('唔... 出了点小问题 😥\n' + (result.msg || '请稍后再试'))
-      }
-      this.setData({ loading: false })
-    }).catch(() => {
-      this.updateLastAi('网络好像不太好呢，请稍后再试吧~ 🌸')
-      this.setData({ loading: false })
-    })
-  },
-
   updateLastAi(content) {
     const list = this.data.list.slice()
     const last = list[list.length - 1]
@@ -296,28 +254,6 @@ Page({
     this.setData({ list })
     // 保存 AI 回复
     this.saveChatHistory()
-  },
-
-  setApiKey() {
-    const that = this
-    wx.showModal({
-      title: '配置 DeepSeek API Key',
-      editable: true,
-      placeholderText: '粘贴你的 DeepSeek API Key',
-      success(res) {
-        if (res.confirm && res.content) {
-          const key = res.content.trim()
-          wx.setStorageSync('deepseekApiKey', key)
-          that.setData({ apiKey: key, useLocal: !key })
-          wx.showToast({ title: '已保存，AI模式已开启', icon: 'success' })
-        }
-      }
-    })
-  },
-
-  onShow() {
-    const storedKey = wx.getStorageSync('deepseekApiKey') || ''
-    this.setData({ apiKey: storedKey, useLocal: !storedKey })
   },
 
   onHide() {

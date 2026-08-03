@@ -1,5 +1,7 @@
 ﻿const db = wx.cloud.database()
 const { getCoupleId } = require('../../utils/relationship')
+const { callSharedData } = require('../../utils/sharedData')
+const { waitForAuth } = require('../../utils/auth')
 
 const CATEGORY_LIST = [
   { name: '约会', icon: '💑', color: '#ff6b9d' },
@@ -89,7 +91,8 @@ Page({
 
   allListCache: [],
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
     const myCode = wx.getStorageSync('myCode') || ''
     const myName = wx.getStorageSync('myName') || '我'
     const partnerName = wx.getStorageSync('partnerName') || 'Ta'
@@ -104,7 +107,8 @@ Page({
     this.loadList()
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
     if (wx.getStorageSync('hasCouple')) {
       this.setData({ hasCouple: true })
     }
@@ -132,7 +136,7 @@ Page({
   },
 
   applyList(allList) {
-    const myCode = this.data.myCode
+    const myOpenid = wx.getStorageSync('openid') || ''
     let total = 0
     let myTotal = 0
     let partnerTotal = 0
@@ -141,12 +145,12 @@ Page({
     allList.forEach(item => {
       const m = Number(item.money) || 0
       total += m
-      if (item.authorCode === myCode) myTotal += m
-      else if (item.authorCode) partnerTotal += m
+      if (item.authorOpenid === myOpenid) myTotal += m
+      else if (item.authorOpenid) partnerTotal += m
       if (isThisMonth(item.createTime)) monthTotal += m
     })
 
-    const list = allList.map(item => this.decorateItem(item, myCode))
+    const list = allList.map(item => this.decorateItem(item, myOpenid))
     const categoryStats = this.buildCategoryStats(allList)
 
     this.setData({
@@ -160,9 +164,9 @@ Page({
     })
   },
 
-  decorateItem(item, myCode) {
+  decorateItem(item, myOpenid) {
     const cat = CATEGORY_LIST.find(c => c.name === item.category) || CATEGORY_LIST[9]
-    const isMine = item.authorCode === myCode
+    const isMine = item.authorOpenid === myOpenid
     const avg = item.avg || ((Number(item.money) || 0) / (Number(item.people) || 2)).toFixed(2)
     return Object.assign({}, item, {
       _categoryName: item.category || '其它',
@@ -458,9 +462,7 @@ Page({
       content: '删除后不可恢复，确定要删除这条记录吗？',
       success: res => {
         if (!res.confirm) return
-        db.collection('cost')
-          .doc(id)
-          .remove()
+        callSharedData('deleteOwnedRecord', { collection: 'cost', id })
           .then(() => {
             wx.showToast({ title: '已删除' })
             this.loadList()

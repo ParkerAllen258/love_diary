@@ -5,13 +5,10 @@
       <view class="sprite-avatar">🤖</view>
       <view class="header-info">
         <view class="header-name">恋爱小精灵</view>
-        <view class="header-status">{{apiKey ? '🟢 AI已连接' : '🟡 本地精灵模式'}}</view>
+        <view class="header-status">🟡 本地精灵模式</view>
       </view>
     </view>
     <view class="header-actions">
-      <view class="header-btn" bindtap="setApiKey">
-        <text>{{apiKey ? '🔑 换Key' : '🔑 配置Key'}}</text>
-      </view>
       <view class="header-btn" bindtap="clearChat">
         <text>🗑</text>
       </view>

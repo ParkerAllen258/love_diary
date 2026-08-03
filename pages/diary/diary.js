@@ -1,7 +1,7 @@
-const db = wx.cloud.database()
 const { publishDiary, getDiaryList } = require('../../utils/diary')
 const { chooseImage, uploadImage } = require('../../utils/upload')
-const { loadPartnerOpenid } = require('../../utils/auth')
+const { loadPartnerOpenid, waitForAuth } = require('../../utils/auth')
+const { callSharedData, resolveFileUrls } = require('../../utils/sharedData')
 
 Page({
 
@@ -15,7 +15,8 @@ Page({
 
   },
 
-  onLoad() {
+  async onLoad() {
+    await waitForAuth()
 
     if (!wx.getStorageSync('hasCouple')) {
 
@@ -31,7 +32,8 @@ Page({
 
   },
 
-  onShow() {
+  async onShow() {
+    await waitForAuth()
 
     this.refreshList()
 
@@ -180,13 +182,20 @@ Page({
     }
 
     getDiaryList()
-      .then(res => {
+      .then(async res => {
 
-        const list = (res.data || []).map(item => {
+        const rows = res.data || []
+        const urls = await resolveFileUrls(rows.map(item => item.imageUrl))
+
+        const list = rows.map(item => {
 
           item.isMine = item.authorOpenid === myOpenid
 
           item.time = this.formatTime(item.createTime)
+
+          item.imageFileID = item.imageUrl
+
+          item.imageUrl = urls[item.imageUrl] || ''
 
           return item
 
@@ -222,11 +231,7 @@ Page({
 
         if (!res.confirm) return
 
-        const remove = () => {
-
-          db.collection('diaries')
-            .doc(id)
-            .remove()
+        callSharedData('deleteOwnedRecord', { collection: 'diaries', id })
             .then(() => {
 
               wx.showToast({ title: '已删除' })
@@ -234,20 +239,7 @@ Page({
               this.refreshList()
 
             })
-
-        }
-
-        if (item.imageUrl) {
-
-          wx.cloud.deleteFile({ fileList: [item.imageUrl] })
-            .then(remove)
-            .catch(remove)
-
-        } else {
-
-          remove()
-
-        }
+            .catch(err => wx.showToast({ title: err.message || '删除失败', icon: 'none' }))
 
       }
 

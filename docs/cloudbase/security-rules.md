@@ -38,7 +38,7 @@
 
 ```json
 {
-  "read": "doc.status == 'active' && doc.memberOpenids.indexOf(auth.openid) >= 0",
+  "read": "doc.status == 'active' && auth.openid in doc.memberOpenids",
   "create": false,
   "update": false,
   "delete": false
@@ -78,9 +78,10 @@
 ## 共享业务集合规则
 
 以下规则适用于所有 12 个共享集合。每条规则确保：
-- 只能读取/操作属于自己情侣关系的数据（通过 `coupleId` 匹配）。
+- 只能读取属于自己情侣关系的数据（通过 `coupleId` 匹配）。
 - 用户的关系状态必须为 `active`。
 - 创建记录时，`authorOpenid` 必须是调用者本人。
+- 客户端不能更新或删除；协作更新和创建者删除统一由 `sharedDataService` 校验。
 
 ### moment（动态）
 
@@ -88,8 +89,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -99,8 +100,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -110,8 +111,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -121,8 +122,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -132,8 +133,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -143,8 +144,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -154,8 +155,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -165,8 +166,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -176,8 +177,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -187,8 +188,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -198,8 +199,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -209,8 +210,8 @@
 {
   "read": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
   "create": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active' && doc.authorOpenid == auth.openid",
-  "update": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'",
-  "delete": "doc.coupleId == get(`database.users.${auth.openid}`).coupleId && get(`database.users.${auth.openid}`).relationshipStatus == 'active'"
+  "update": false,
+  "delete": false
 }
 ```
 
@@ -222,15 +223,16 @@
 
 ```json
 {
-  "read": true,
-  "write": "resource.path.indexOf('couples/' + get(`database.users.${auth.openid}`).coupleId) == 0"
+  "read": "resource.openid == auth.openid",
+  "write": "resource.openid == auth.openid"
 }
 ```
 
 **说明**：
-- 所有用户可读取文件（用于图片展示）。
-- 写入权限限制为只能上传到 `couples/<自己的coupleId>/` 路径下。
-- OCR 临时文件路径 `ocr/` 不受此限制（OCR 由云函数 `ocrSchedule` 处理）。
+- 客户端只能直接读写自己上传的文件。
+- 伴侣图片由 `sharedDataService.getFileUrls` 校验 active 情侣关系后返回临时地址。
+- `ocrSchedule` 只接受 `ocr/<调用者OPENID>/` 下的图片，并在识别结束后自动删除。
+- 云存储规则不能查询数据库关系，因此不要使用 `get()` 或 `indexOf()` 拼接情侣路径。
 
 ---
 

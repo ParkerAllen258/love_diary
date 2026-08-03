@@ -19,10 +19,10 @@ const publishBlock = moment.slice(moment.indexOf('  publish()'), moment.indexOf(
 assert(/wx\.showToast\(\{\s*title:\s*'发布失败'/.test(publishBlock), 'moment publish failure toast should say publish failed')
 
 const course = read('pages/course/course.js')
-assert(/authorCode:\s*myCode/.test(course), 'course page should filter own courses by authorCode')
+assert(/authorOpenid\s*===\s*myOpenid/.test(course), 'course page should filter own courses by trusted openid')
 
 const index = read('pages/index/index.js')
-assert(/authorCode:\s*myCode/.test(index), 'home course widget should filter own courses by authorCode')
+assert(/authorOpenid:\s*myOpenid/.test(index), 'home course widget should filter own courses by trusted openid')
 
 const mine = read('pages/mine/mine.js')
 assert(/callRelationship\('acceptRequest'/.test(mine), 'agreeRequest should route through relationship service')
@@ -35,7 +35,7 @@ assert(/bootstrapRelationship/.test(auth), 'auth should bootstrap through relati
 
 const album = read('pages/album/album.js')
 assert(/collection\('album_folders'\)/.test(album), 'album folders should use cloud collection')
-assert(/migrateLocalAlbums/.test(album), 'album page should migrate local folders to cloud')
+assert(/resolveFileUrls/.test(album), 'album page should resolve protected cloud files')
 
 const gitignore = read('.gitignore')
 assert(/node_modules/.test(gitignore), '.gitignore should ignore node_modules')
@@ -99,6 +99,8 @@ for (const coll of ['users', 'couple', 'coupleRequest', 'invite']) {
 const deployDoc = read('docs/cloudbase/deployment-checklist.md')
 assert(deployDoc.length > 500, 'deployment-checklist.md must exist with substantive content')
 assert(deployDoc.includes('relationshipService'), 'deployment-checklist.md must reference relationshipService')
+assert(deployDoc.includes('sharedDataService'), 'deployment-checklist.md must reference sharedDataService')
+assert(deployDoc.includes('ocrSchedule'), 'deployment-checklist.md must reference ocrSchedule')
 assert(deployDoc.includes('cleanupExpiredCouples'), 'deployment-checklist.md must reference cleanupExpiredCouples')
 
 // All shared page .add calls include authorOpenid (already enforced by static test,

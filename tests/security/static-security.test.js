@@ -97,6 +97,69 @@ test('every shared-collection .add( in runtime code references coupleId', () => 
   assert.deepEqual(offenders, [], 'shared-collection add() blocks missing coupleId: ' + offenders.join(', '))
 })
 
+test('runtime pages do not directly update or delete protected shared records', () => {
+  const offenders = []
+  for (const file of listRuntimeJs(path.join(ROOT, 'pages'))) {
+    const source = fs.readFileSync(file, 'utf8')
+    for (const collection of SHARED_COLLECTIONS) {
+      const pattern = new RegExp(
+        "collection\\(['\"]" + collection + "['\"]\\)[\\s\\S]{0,180}?\\.(?:update|remove)\\(",
+        'g'
+      )
+      if (pattern.test(source)) offenders.push(path.relative(ROOT, file) + ' (' + collection + ')')
+    }
+  }
+  assert.deepEqual(offenders, [], 'dangerous shared writes must use sharedDataService: ' + offenders.join(', '))
+})
+
+test('runtime ownership checks do not trust authorCode', () => {
+  const patterns = [
+    /authorCode\s*===/,
+    /===\s*[^\n;]*authorCode/,
+    /likedBy[^\n;]*myCode/,
+    /wateredBy[^\n;]*myCode/
+  ]
+  const offenders = RUNTIME_FILES.filter(file => {
+    const source = fs.readFileSync(file, 'utf8')
+    return patterns.some(pattern => pattern.test(source))
+  }).map(file => path.relative(ROOT, file))
+  assert.deepEqual(offenders, [], 'ownership must use authorOpenid: ' + offenders.join(', '))
+})
+
+test('shared image pages resolve partner files through sharedDataService', () => {
+  for (const file of [
+    'pages/album/album.js', 'pages/companion/companion.js',
+    'pages/diary/diary.js', 'pages/moment/moment.js'
+  ]) {
+    assert.match(fs.readFileSync(path.join(ROOT, file), 'utf8'), /resolveFileUrls/, file)
+  }
+})
+
+test('data pages wait for authentication before reading relationship state', () => {
+  for (const page of [
+    'index', 'mine', 'album', 'anniversary', 'companion', 'cost', 'course',
+    'diary', 'goals', 'letter', 'moment', 'money', 'note', 'schedule'
+  ]) {
+    const file = `pages/${page}/${page}.js`
+    const source = fs.readFileSync(path.join(ROOT, file), 'utf8')
+    assert.match(source, /waitForAuth/, file)
+    assert.match(source, /async onLoad\(\)[\s\S]{0,100}?await waitForAuth\(\)/, file)
+    assert.match(source, /async onShow\(\)[\s\S]{0,100}?await waitForAuth\(\)/, file)
+  }
+})
+
+test('local sprite chat never stores or transmits API keys', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'pages/sprite/sprite.js'), 'utf8')
+  assert.doesNotMatch(source, /apiKey|deepseek|chatAI/i)
+  assert.equal(fs.existsSync(path.join(ROOT, 'cloudfunctions/chatAI')), false)
+})
+
+test('OCR client does not display raw provider output or debug payloads', () => {
+  const source = fs.readFileSync(path.join(ROOT, 'pages/course/course.js'), 'utf8')
+  assert.doesNotMatch(source, /rawText|sampleJson|ocrKeys|result\.debug/)
+  assert.match(source, /cloudPath:\s*'ocr\/'\s*\+\s*openid/)
+})
+
 // ==================== Task 8: documentation and deployment assertions ====================
 
 const DOCS_DIR = path.join(ROOT, 'docs', 'cloudbase')
@@ -125,6 +188,10 @@ test('security-rules.md exists and covers all required collections', () => {
   // Must document the create rule with authorOpenid check
   assert.match(content, /authorOpenid\s*==\s*auth\.openid/, 'security-rules.md must include authorOpenid creation check')
 
+  assert.doesNotMatch(content, /"update":\s*"doc\.coupleId/, 'shared records must not be updated directly')
+  assert.match(content, /"read":\s*"resource\.openid == auth\.openid"/, 'storage must be creator-readable only')
+  assert.doesNotMatch(content, /resource\.path\.indexOf/, 'storage rules do not support indexOf')
+
   // Must warn about frontend queries requiring rule fields
   assert.match(content, /查询.*必须.*包含|coupleId.*查询条件|where.*coupleId/, 'security-rules.md must warn about query field requirements')
 })
@@ -135,6 +202,8 @@ test('deployment-checklist.md exists and covers deployment steps', () => {
 
   // Must mention function deployment
   assert.match(content, /relationshipService/, 'deployment-checklist.md must cover relationshipService deployment')
+  assert.match(content, /sharedDataService/, 'deployment-checklist.md must cover sharedDataService deployment')
+  assert.match(content, /ocrSchedule/, 'deployment-checklist.md must cover ocrSchedule deployment')
   assert.match(content, /cleanupExpiredCouples/, 'deployment-checklist.md must cover cleanupExpiredCouples deployment')
 
   // Must cover indexes
