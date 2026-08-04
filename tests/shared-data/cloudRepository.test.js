@@ -7,7 +7,7 @@ function clone(value) { return value == null ? value : structuredClone(value) }
 class FakeDoc {
   constructor(store, id) { this.store = store; this.id = id }
   async get() { return { data: clone(this.store.get(this.id) || null) } }
-  async set(data) {
+  async set({ data }) {
     assert.equal(Object.prototype.hasOwnProperty.call(data, '_id'), false)
     this.store.set(this.id, { ...clone(data), _id: this.id })
   }

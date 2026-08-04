@@ -20,7 +20,7 @@ class FakeDoc {
     return { data: clone(this.store.get(this.id) || null) }
   }
 
-  async set(data) {
+  async set({ data }) {
     assert.equal(Object.prototype.hasOwnProperty.call(data, '_id'), false)
     this.store.set(this.id, { ...clone(data), _id: this.id })
     return { _id: this.id }

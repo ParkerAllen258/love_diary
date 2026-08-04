@@ -29,7 +29,7 @@ async function requireActive(scope, openid, coupleId) {
 }
 
 async function writeDoc(scope, collection, id, document) {
-  await scope.collection(collection).doc(id).set(withoutId(document))
+  await scope.collection(collection).doc(id).set({ data: withoutId(document) })
 }
 
 function emptyTree(coupleId) {
@@ -45,9 +45,9 @@ function emptyTree(coupleId) {
 }
 
 class CloudRepository {
-  constructor(cloudApi) {
+  constructor(cloudApi, database = cloudApi.database()) {
     this.cloud = cloudApi
-    this.db = cloudApi.database()
+    this.db = database
   }
 
   async getUser(openid) { return readDoc(this.db, 'users', openid) }
@@ -72,7 +72,7 @@ class CloudRepository {
       const document = await readDoc(transaction, collection, id)
       if (!document || document.coupleId !== coupleId) throw codedError('FORBIDDEN')
       const saved = { ...document, ...fields, updateTime: updatedAt }
-      await transaction.collection(collection).doc(id).set(withoutId(saved))
+      await transaction.collection(collection).doc(id).set({ data: withoutId(saved) })
       return saved
     })
   }

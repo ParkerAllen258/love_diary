@@ -30,7 +30,7 @@
 }
 ```
 
-**说明**：`relationshipService` 云函数不受安全规则限制，可以正常读写 `users`。客户端通过 `bootstrap` action 间接获取自己的用户信息。
+**说明**：`relationshipService` 使用显式环境数据库客户端读写 `users`，并通过可信 `OPENID` 校验调用者。普通客户端仍受上述规则限制，只能通过 `bootstrap` action 间接获取自己的用户信息。
 
 ### couple
 

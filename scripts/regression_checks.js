@@ -48,6 +48,14 @@ const relationshipServiceIndex = read('cloudfunctions/relationshipService/index.
 assert(/getWXContext/.test(relationshipServiceIndex), 'relationshipService must use getWXContext for OPENID')
 assert(!/event\.openid|event\.OPENID/.test(relationshipServiceIndex), 'relationshipService must not accept openid from event payload')
 
+// Trusted data functions must use an explicit environment database client so
+// protected collection rules cannot block their server-authorized operations.
+for (const functionName of ['relationshipService', 'sharedDataService', 'cleanupExpiredCouples']) {
+  const source = read(`cloudfunctions/${functionName}/index.js`)
+  assert(/cloud\.database\(\{\s*env:\s*cloud\.DYNAMIC_CURRENT_ENV\s*\}\)/.test(source),
+    `${functionName} must use an explicit environment database client`)
+}
+
 // cleanupExpiredCouples rejects client invocations
 const cleanupIndex = read('cloudfunctions/cleanupExpiredCouples/index.js')
 assert(/FORBIDDEN/.test(cleanupIndex), 'cleanupExpiredCouples must reject unauthorized calls')

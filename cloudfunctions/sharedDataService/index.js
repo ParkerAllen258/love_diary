@@ -26,9 +26,10 @@ function getDefaultMain() {
     const { SharedDataService } = require('./lib/service')
     const { CloudRepository } = require('./lib/cloudRepository')
     cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+    const database = cloud.database({ env: cloud.DYNAMIC_CURRENT_ENV })
     defaultMain = createMain({
       cloudApi: cloud,
-      sharedDataService: new SharedDataService({ repository: new CloudRepository(cloud) })
+      sharedDataService: new SharedDataService({ repository: new CloudRepository(cloud, database) })
     })
   }
   return defaultMain

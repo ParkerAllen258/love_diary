@@ -26,7 +26,7 @@ async function readDoc(scope, collection, id) {
 }
 
 async function writeDoc(scope, collection, document) {
-  await scope.collection(collection).doc(document._id).set(withoutId(document))
+  await scope.collection(collection).doc(document._id).set({ data: withoutId(document) })
 }
 
 function sharedArchiveId(leftUser, rightUser) {

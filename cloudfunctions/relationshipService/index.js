@@ -29,7 +29,7 @@ function getDefaultMain() {
   if (!defaultMain) {
     const cloud = require('wx-server-sdk')
     cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
-    const repository = new CloudRepository(cloud.database())
+    const repository = new CloudRepository(cloud.database({ env: cloud.DYNAMIC_CURRENT_ENV }))
     const service = new RelationshipService({ repository, randomBytes: crypto.randomBytes })
     defaultMain = createMain({ cloudApi: cloud, relationshipService: service })
   }

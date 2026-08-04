@@ -15,9 +15,9 @@ function storageError(entry) {
 }
 
 class CloudCleanupRepository {
-  constructor(cloudApi) {
+  constructor(cloudApi, database = cloudApi.database()) {
     this.cloud = cloudApi
-    this.db = cloudApi.database()
+    this.db = database
   }
 
   async listExpiredArchived(now, limit) {
@@ -101,8 +101,9 @@ function getDefaultMain() {
   if (!defaultMain) {
     const cloud = require('wx-server-sdk')
     cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+    const database = cloud.database({ env: cloud.DYNAMIC_CURRENT_ENV })
     defaultMain = createMain({
-      repository: new CloudCleanupRepository(cloud),
+      repository: new CloudCleanupRepository(cloud, database),
       cleanupToken: process.env.CLEANUP_TOKEN,
       getCallerOpenid: () => cloud.getWXContext().OPENID
     })
